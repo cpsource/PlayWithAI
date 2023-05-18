@@ -1,2 +1,2 @@
 # PlayWithAI
-My playpen for mucking about with AI. This should be of no use to anyone.
+This is my playpen for mucking about with AI. This should be of no use to anyone.
