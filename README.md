@@ -15,3 +15,8 @@ As for getting technical help, I use bard.google.com. It's great at high-level q
 
 I use Evernote as a web clipper with a Chrome browser.
 
+submodules
+----------
+Note: there are a number of config files. These are from submodules I've loaded into this top level directory. I'm
+to lazy to bother with git's submodule system, so you have to clone these from the information in the
+config files.
