@@ -1,3 +1,15 @@
 [submodule "tiktoken"]
 	path = tiktoken
 	url = https://github.com/openai/tiktoken.git
+[submodule "learning-openssl"]
+	path = learning-openssl
+	url = https://github.com/danbev/learning-openssl.git
+[submodule "offline-wiki-reader"]
+	path = offline-wiki-reader
+	url = https://github.com/hoereth/offline-wiki-reader.git
+[submodule "openai-cookbook"]
+	path = openai-cookbook
+	url = https://github.com/openai/openai-cookbook.git
+[submodule "scikit-learn"]
+	path = scikit-learn
+	url = https://github.com/scikit-learn/scikit-learn.git

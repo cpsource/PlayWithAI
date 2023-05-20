@@ -1,6 +1,12 @@
 # PlayWithAI
 This is my playpen for mucking about with AI. This should be of no use to anyone.
 
+To get all the submodules (recommended), do a
+
+git clone --recurse-submodules https://github.com/cpsource/PlayWithAI.git
+
+Misc Notes
+----------
 As for hardware, I have an Alienware x14 gamer laptop running windows 11. The hardware has built-in Nvidia graphics card with about 2500 cuda cores, which, it turns out, will work with TensorFlow, etc.
 
 The box also supports Ubuntu native in w11. Neet, actually, but getting it running was a bear. I made one mistake
@@ -17,6 +23,4 @@ I use Evernote as a web clipper with a Chrome browser.
 
 submodules
 ----------
-Note: there are a number of config files. These are from submodules I've loaded into this top level directory. I'm
-to lazy to bother with git's submodule system, so you have to clone these from the information in the
-config files.
+Note: there are a number of config files. These are from submodules I've loaded into this top level directory.
