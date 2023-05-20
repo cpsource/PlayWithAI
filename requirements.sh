@@ -11,3 +11,6 @@
 
 # then to run it
 # source venv/bin/activate
+
+# this is how we make sure pip is the latest
+# pip install --upgrade pip
