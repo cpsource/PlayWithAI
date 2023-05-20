@@ -1,0 +1,25 @@
+From ca1f98c99d93f982d1beb0ce9e16707f5523e6a3 Mon Sep 17 00:00:00 2001
+From: cpsource <page.cal@gmail.com>
+Date: Sat, 20 May 2023 09:20:45 -0400
+Subject: [PATCH] use bard socket instead of google
+
+---
+ socket.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/socket.c b/socket.c
+index 477c094..f78fd1d 100644
+--- a/socket.c
++++ b/socket.c
+@@ -12,7 +12,7 @@ int main(int arc, char *argv[]) {
+   ERR_load_crypto_strings();
+   OPENSSL_no_config();
+ 
+-  bio = BIO_new_connect("www.google.com:80");
++  bio = BIO_new_connect("bard.google.com:80");
+   if (bio == NULL) {
+     fprintf(stderr, "new_connect failed");
+     exit(1);
+-- 
+2.34.1
+

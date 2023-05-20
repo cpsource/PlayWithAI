@@ -3,7 +3,7 @@ This is my playpen for mucking about with AI. This should be of no use to anyone
 
 To get all the submodules (recommended), do a
 
-git clone --recurse-submodules https://github.com/cpsource/PlayWithAI.git
+git clone --recurse-submodules --remote-submodules https://github.com/cpsource/PlayWithAI.git
 
 Misc Notes
 ----------

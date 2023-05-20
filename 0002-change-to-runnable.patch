@@ -1,0 +1,16 @@
+From c0b7166ae757c1dd63e1ddc9a4d27c07aea7b75f Mon Sep 17 00:00:00 2001
+From: cpsource <page.cal@gmail.com>
+Date: Sat, 20 May 2023 09:23:28 -0400
+Subject: [PATCH 2/2] change to runnable
+
+---
+ offlineWikiReader.sh | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 offlineWikiReader.sh
+
+diff --git a/offlineWikiReader.sh b/offlineWikiReader.sh
+old mode 100644
+new mode 100755
+-- 
+2.34.1
+
