@@ -44,3 +44,46 @@ predictions = clf.predict(new_data)
 and further on
 
 print(bunch['data'][0])
+
+--------- and from stackoverflow ----------------
+from sklearn import datasets
+import pandas as pd
+
+boston_data = datasets.load_boston()
+df_boston = pd.DataFrame(boston_data.data,columns=boston_data.feature_names)
+df_boston['target'] = pd.Series(boston_data.target)
+df_boston.head()
+As a general function:
+
+def sklearn_to_df(sklearn_dataset):
+    df = pd.DataFrame(sklearn_dataset.data, columns=sklearn_dataset.feature_names)
+    df['target'] = pd.Series(sklearn_dataset.target)
+    return df
+
+df_boston = sklearn_to_df(datasets.load_boston())
+
+----------------
+
+As of scikit-learn 0.23 you can do the following to get a DataFrame and save some keystrokes:
+
+df = load_breast_cancer(as_frame=True)
+df.frame
+
+----------------
+def answer_one(): 
+    import numpy as np
+    import pandas as pd
+    from sklearn.datasets import load_breast_cancer 
+    cancer = load_breast_cancer()     
+    data = np.c_[cancer.data, cancer.target]
+    columns = np.append(cancer.feature_names, ["target"])
+    return pd.DataFrame(data, columns=columns)
+
+answer_one()
+
+---
+
+dataframe = pd.DataFrame(data=cancer.data, columns=cancer.feature_names)
+dataframe['target'] = cancer.target
+return dataframe
+
