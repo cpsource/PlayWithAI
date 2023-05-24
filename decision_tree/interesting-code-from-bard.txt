@@ -1,0 +1,46 @@
+(Bard is a terrible programmer, as you can see from this. It can generally point
+in the right direction however.)
+
+import numpy as np
+import pandas as pd
+
+# Read the CSV file into a Pandas DataFrame
+df = pd.read_csv('iris.csv')
+
+# Create a Bunch object from the DataFrame
+bunch = Bunch()
+bunch['data'] = df.values
+bunch['target'] = df['species']
+
+# Print the Bunch object
+print(bunch)
+
+further on
+
+from sklearn.tree import DecisionTreeClassifier
+
+# Create a decision tree classifier
+clf = DecisionTreeClassifier()
+
+# Train the classifier on the Bunch object
+clf.fit(bunch['data'], bunch['target'])
+
+# Make predictions on new data
+predictions = clf.predict(new_data)
+
+and further on
+
+from sklearn.tree import DecisionTreeClassifier
+
+# Create a decision tree classifier
+clf = DecisionTreeClassifier()
+
+# Train the classifier on the Bunch object
+clf.fit(bunch['data'], bunch['target'])
+
+# Make predictions on new data
+predictions = clf.predict(new_data)
+
+and further on
+
+print(bunch['data'][0])
