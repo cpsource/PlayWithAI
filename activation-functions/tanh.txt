@@ -1,0 +1,14 @@
+The hyperbolic tangent function, or tanh, is a non-linear function that is often used in artificial intelligence (AI) for neuron activation. It is defined as:
+
+Code snippet
+
+	tanh(x) = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
+
+Use code with caution. Learn more
+The tanh function has a number of properties that make it well-suited for use in AI. First, it is bounded between -1 and 1, which means that it can be used to represent a wide range of values. Second, it is smooth and continuous, which makes it easy to train neural networks. Third, it is differentiable, which means that it can be used to calculate the gradients of neural networks.
+
+The tanh function is often used in the hidden layers of neural networks. In these layers, the tanh function helps to learn non-linear relationships between the input and output data. This allows neural networks to learn more complex patterns than would be possible with linear models.
+
+The tanh function is also used in the output layer of neural networks. In this layer, the tanh function helps to map the output of the neural network to a range of values that is meaningful for the task at hand. For example, if the neural network is being used to classify images, the tanh function can be used to map the output of the neural network to a range of values that represents the probability of each class.
+
+Overall, the tanh function is a powerful tool that can be used to improve the performance of AI models. It is a versatile function that can be used in a variety of ways, and it is well-suited for use in neural networks.
