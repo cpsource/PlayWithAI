@@ -125,8 +125,22 @@ my_feature = ([1.0, 2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0, 10.0, 11.0, 1
 my_label   = ([5.0, 8.8,  9.6, 14.2, 18.8, 19.5, 21.4, 26.8, 28.9, 32.0, 33.8, 38.2])
 
 learning_rate=0.01
-epochs=300
+#
+# If you set this learning_rate, model will never converge.
+# The error will oscilate
+#learning_rate=100
+
+epochs=500
 my_batch_size=12
+
+# try this example - I did and it works a lot faster
+learning_rate=0.14
+epochs=70
+
+# another example to try
+learning_rate=0.05
+epochs=100
+my_batch_size=1 # Wow, a batch size of 1 works!
 
 my_model = build_model(learning_rate)
 trained_weight, trained_bias, epochs, rmse = train_model(my_model, my_feature,
