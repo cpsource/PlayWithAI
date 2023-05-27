@@ -14,8 +14,9 @@ from matplotlib import pyplot as plt
 pd.options.display.max_rows = 10
 pd.options.display.float_format = "{:.1f}".format
 
-# Import the dataset.
-training_df = pd.read_csv(filepath_or_buffer="https://download.mlcc.google.com/mledu-datasets/california_housing_train.csv")
+# Import the dataset. - I cache it with a wget
+#training_df = pd.read_csv(filepath_or_buffer="https://download.mlcc.google.com/mledu-datasets/california_housing_train.csv")
+training_df = pd.read_csv(filepath_or_buffer="california_housing_train.csv")
 
 # Scale the label.
 training_df["median_house_value"] /= 1000.0
