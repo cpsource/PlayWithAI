@@ -142,6 +142,17 @@ batch_size = 30
 
 # Specify the feature and the label.
 my_feature = "total_rooms"  # the total number of rooms on a specific city block.
+
+if True:
+  # Define a synthetic feature
+  training_df["rooms_per_person"] = training_df["total_rooms"] / training_df["population"]
+  my_feature = "rooms_per_person"
+
+  # Tune the hyperparameters.
+  learning_rate = 0.06
+  epochs = 24
+  batch_size = 30
+
 my_label="median_house_value" # the median value of a house on a specific city block.
 # That is, you're going to create a model that predicts house value based
 # solely on total_rooms.
