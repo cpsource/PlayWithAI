@@ -110,9 +110,9 @@ def plot_the_model(trained_weight, trained_bias, feature, label):
   # Create a red line representing the model. The red line starts
   # at coordinates (x0, y0) and ends at coordinates (x1, y1).
   x0 = 0
-  y0 = trained_bias
+  y0 = float(trained_bias)
   x1 = random_examples[feature].max()
-  y1 = trained_bias + (trained_weight * x1)
+  y1 = float(trained_bias + (trained_weight * x1))
   plt.plot([x0, x1], [y0, y1], c='r')
 
   # Render the scatter plot and the red line.
