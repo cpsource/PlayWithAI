@@ -20,6 +20,8 @@ training_df = pd.read_csv(filepath_or_buffer="california_housing_train.csv")
 
 # Scale the label.
 training_df["median_house_value"] /= 1000.0
+training_df["total_rooms"] /= 100.0
+training_df["total_bedrooms"] /= 100.0
 
 # Print the first rows of the pandas DataFrame.
 print(training_df.head())
