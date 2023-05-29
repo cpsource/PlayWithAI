@@ -1,0 +1,11 @@
+# Define the model
+model = LinearRegression()
+
+# Add L2 regularization
+model.regularization = l2(0.01)
+
+# Fit the model to the data
+model.fit(X_train, y_train)
+
+# Make predictions on the test data
+y_pred = model.predict(X_test)
