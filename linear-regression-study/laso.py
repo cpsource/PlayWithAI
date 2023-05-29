@@ -2,6 +2,11 @@
 #         Alexandre Gramfort <alexandre.gramfort@inria.fr>
 # License: BSD 3 clause
 
+#
+# Note: Vas ist das? It would be nice to have/fine an explanation of
+# what the heck is going on here
+#
+
 import numpy as np
 import matplotlib.pyplot as plt
 
