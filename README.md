@@ -7,6 +7,9 @@ git clone --recurse-submodules --remote-submodules https://github.com/cpsource/P
 
 Misc Notes
 ----------
+
+A lot of this stuff is duplicated at pythonProject having to do with learning PyCharm
+
 As for hardware, I have an Alienware x14 gamer laptop running windows 11. The hardware has built-in Nvidia graphics card with about 2500 cuda cores, which, it turns out, will work with TensorFlow, etc.
 
 The box also supports Ubuntu native in w11. Neet, actually, but getting it running was a bear. I made one mistake
