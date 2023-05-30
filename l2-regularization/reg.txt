@@ -9,3 +9,22 @@ model.fit(X_train, y_train)
 
 # Make predictions on the test data
 y_pred = model.predict(X_test)
+
+#In AI, regularization is a technique used to prevent a machine learning model from overfitting the training data. Overfitting occurs when a model learns the training data too well and is unable to generalize to new data. This can lead to poor performance on unseen data. Regularization adds a penalty to the model's loss function, which encourages the model to be more general.
+#
+#There are two main types of regularization:
+#
+#Lasso regularization adds a penalty to the sum of the absolute values of the model's coefficients. This encourages the model to have fewer features with large coefficients.
+#Ridge regularization adds a penalty to the sum of the squares of the model's coefficients. This encourages the model to have smaller coefficients overall.
+#Regularization is an important technique for preventing overfitting and improving the performance of machine learning models. It is often used in conjunction with other techniques, such as cross-validation, to tune the hyperparameters of a model.
+#
+#Here are some of the benefits of using regularization:
+#
+#Improved generalization: Regularization can help to improve the generalization performance of a model by preventing it from overfitting the training data.
+#Reduced variance: Regularization can help to reduce the variance of a model by making it less sensitive to small changes in the training data.
+#Increased robustness: Regularization can help to make a model more robust to noise and outliers in the training data.
+#Here are some of the challenges of using regularization:
+#
+#Overfitting: If the regularization hyperparameters are not chosen correctly, it is possible for regularization to actually lead to overfitting.
+#Computational complexity: Regularization can increase the computational complexity of training a model.
+#Interpretability: Regularization can make it more difficult to interpret the results of a model.
