@@ -68,7 +68,7 @@ class NeuralNetwork(nn.Module):
             nn.Linear(28*28, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
-            nn.ReLU(),
+            nn.Sigmoid(),
             nn.Linear(512, 10)
         )
 
