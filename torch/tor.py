@@ -68,7 +68,7 @@ class NeuralNetwork(nn.Module):
             nn.Linear(28*28, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
-            nn.Sigmoid(),
+            nn.ReLU(),
             nn.Linear(512, 10)
         )
 
@@ -126,7 +126,7 @@ def test(dataloader, model, loss_fn):
 
 # The training process is conducted over several iterations (epochs). During each epoch, the model learns parameters to make better predictions. We print the model’s accuracy and loss at each epoch; we’d like to see the accuracy increase and the loss decrease with every epoch.
 
-epochs = 5 
+epochs = 15 
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
