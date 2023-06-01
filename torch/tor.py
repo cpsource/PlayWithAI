@@ -126,7 +126,7 @@ def test(dataloader, model, loss_fn):
 
 # The training process is conducted over several iterations (epochs). During each epoch, the model learns parameters to make better predictions. We print the model’s accuracy and loss at each epoch; we’d like to see the accuracy increase and the loss decrease with every epoch.
 
-epochs = 6 
+epochs = 5 
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
@@ -142,6 +142,7 @@ print("Saved PyTorch Model State to model.pth")
 
 model = NeuralNetwork().to(device)
 model.load_state_dict(torch.load("model.pth"))
+print("Restored PyTorch Model")
 
 # This model can now be used to make predictions.
 
@@ -165,5 +166,3 @@ with torch.no_grad():
     pred = model(x)
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
-
-
