@@ -1,0 +1,3 @@
+git clone --filter=blob:none --sparse https://github.com/pytorch/tutorials.git beginner_source
+cd beginner_source
+git sparse-checkout set --no-clone beginner_source
