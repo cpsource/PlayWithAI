@@ -108,3 +108,28 @@ np.add(n, 1, out=n)
 print(f"t: {t}")
 print(f"n: {n}")
 
+# Bard expouses on features vs labels
+#In AI, a feature is a piece of data that is used to train a machine learning model. A label is the desired output of the model.
+#
+#For example, if you are training a model to predict whether an image contains a cat or a dog, the features would be the pixels in the image, and the# label would be either "cat" or "dog".
+#
+#Features are typically numerical, while labels can be numerical or categorical.
+#
+#Features are used to train the model, and the model learns to associate certain features with certain labels. Once the model is trained, it can be u#sed to predict labels for new data.
+#
+#Here are some of the key differences between features and labels:
+#
+#Features are used to train the model, while labels are the desired output of the model.
+#Features are typically numerical, while labels can be numerical or categorical.
+#Features are used to describe the data, while labels are used to classify the data.
+#It is important to understand the difference between features and labels in order to build effective machine learning models.
+#
+#Here are some additional details about features and labels:
+#
+#Features: Features are the inputs to a machine learning model. They are the data that the model uses to learn how to make predictions. Features can #be numerical, categorical, or text data.
+#Labels: Labels are the outputs of a machine learning model. They are the desired results that the model is trying to predict. Labels can be numerica#l, categorical, or text data.
+#It is important to choose features that are relevant to the problem that you are trying to solve. The features should also be representative of the #data that you are using to train the model. If the features are not relevant or representative, the model may not be able to learn how to make accur#ate predictions.
+#
+#It is also important to choose labels that are accurate and consistent. The labels should be the same for each data point. If the labels are not acc#urate or consistent, the model may not be able to learn how to make accurate predictions.
+#
+#Features and labels are two of the most important concepts in machine learning. By understanding the difference between features and labels, you can# build more effective machine learning models.
