@@ -1,6 +1,8 @@
 
 # Note - mostly stuff from Bard
 
+#https://www.evernote.com/shard/s497/nl/85679547/f75579fa-b16b-bb12-ff23-6c2cf8fb2844?title=Gradient%20Descent%20(grad.py)
+
 #Sure. Gradient descent is a mathematical optimization algorithm used in machine learning to find the minimum of a function. It works by taking a guess at the minimum, and then iteratively adjusting the guess by moving in the direction of the negative gradient of the function. The gradient of a function is a vector that points in the direction of the steepest ascent of the function. By moving in the direction of the negative gradient, we are moving in the direction of the steepest descent.
 
 #The math behind gradient descent is relatively simple. The basic idea is to use the derivative of the function to find the direction of the steepest descent. The derivative is a measure of how much the function changes in response to a small change in its input. The negative derivative tells us how much we need to change the input in order to move in the direction of the steepest descent.

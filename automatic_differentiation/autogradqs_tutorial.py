@@ -38,6 +38,49 @@ b = torch.randn(3, requires_grad=True)
 z = torch.matmul(x, w)+b
 loss = torch.nn.functional.binary_cross_entropy_with_logits(z, y)
 
+#The requires_grad argument for torch.randn determines whether the output tensor will be tracked by the autograd engine. If requires_grad is set to True, then the output tensor will be able to backpropagate gradients through it. This means that if you use the output tensor in an operation that computes a gradient, then the gradient will be calculated with respect to the random numbers in the output tensor.
+
+#For example, the following code creates a random tensor with requires_grad set to True. Then, it computes the mean of the tensor and backpropagates the gradient through the mean.
+
+if 0:
+    xt = torch.randn(10, requires_grad=True)
+    mean = xt.mean()
+    mb = mean.backward()
+    #mb = None
+    print(f"xt      = {xt}\n")
+    print(f"mean    = {mean}\n")
+    print(f"mean.backward() called\n")
+    print(f"xt.grad = {xt.grad}\n")
+    print(f"mb      = {mb}\n")
+
+#As you can see, the gradient of the random tensor is a vector of the same size as the tensor, with each element representing the partial derivative of the mean with respect to the corresponding element of the tensor.
+
+#In general, you should only set requires_grad to True for tensors that represent parameters in a neural network. This is because the gradients for these tensors will be used to update the parameters during training. For other tensors, such as tensors that represent input data or intermediate results, you should set requires_grad to False to avoid unnecessary computation.
+
+#The mean.backward() method computes the gradient of the mean tensor with respect to its inputs. This is done by using the chain rule to propagate the gradients from the output of the mean tensor back to its inputs.
+
+#For example, the following code creates a tensor of random numbers and computes its mean. Then, it backpropagates the gradient of the mean through the tensor.
+
+# Onward
+
+print(b)
+print(type(b))
+#print(dir(b))
+exit(0)
+
+#In machine learning, logits are the unnormalized predictions of a model. They are the output of the last layer of a neural network before the softmax function is applied. The softmax function then converts the logits into probabilities.
+
+#Logits are used in classification tasks, where the goal is to predict the class of an input. For example, a model that classifies images of cats and dogs would have two output classes, one for cats and one for dogs. The logits would represent the probability that the input image belongs to each class.
+
+#Logits can also be used in regression tasks, where the goal is to predict a continuous value. For example, a model that predicts the price of a house would have one output value, the predicted price of the house. The logits would represent the log-odds of the house being worth a certain price.
+
+#Logits are a powerful tool for machine learning. They can be used to solve a wide variety of problems, including classification, regression, and ranking.
+
+#Here are some additional details about logits:
+
+#Logits are typically represented as a vector of numbers. The number of elements in the vector is equal to the number of output classes.
+#The values of the logits can be positive or negative. A positive value indicates that the input is more likely to belong to the class corresponding to the logit. A negative value indicates that the input is less likely to belong to the class.
+#The softmax function is used to convert the logits into probabilities. The softmax function normalizes the logits so that they sum to 1. This ensures that the probabilities represent the relative likelihood of the input belonging to each class.
 
 ######################################################################
 # Tensors, Functions and Computational graph
