@@ -30,17 +30,55 @@ PyTorch in the following manner:
 """
 
 import torch
+import numpy as np
 
-x = torch.ones(5)  # input tensor
+x = torch.ones(5)   # input tensor
 y = torch.zeros(3)  # expected output
 w = torch.randn(5, 3, requires_grad=True)
 b = torch.randn(3, requires_grad=True)
 z = torch.matmul(x, w)+b
 loss = torch.nn.functional.binary_cross_entropy_with_logits(z, y)
+print(f"type = {type(loss)}, loss = {loss}\n")
+
+#
+# x is a 1,5
+# w is a 5,3
+# since columns in first matrix equals rows in second, we can multiply
+# and we will get a 1,3 matrix out
+#
+
+if 0:
+    # lets do a stupid case
+    x1 = [1,1,1,1,1]
+    y1 = [0,0,0]
+    w1 = [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
+    z1 = np.matmul(x1,w1)
+    print(f"z1 (computed) = {z1}")
+    print(f"y1 (actual  ) = {y1}")
+
+    xdet = x.detach() # get rid of requires_grad to be True
+    wdet = w.detach() # same as above
+    x1 = np.array(xdet) # convert to numpy array
+    w1 = np.array(wdet) # same as above
+
+    z1 = np.matmul(x1,w1)
+    print(f"z1 (example) = {z1}")
+
+    exit(0)
 
 #The requires_grad argument for torch.randn determines whether the output tensor will be tracked by the autograd engine. If requires_grad is set to True, then the output tensor will be able to backpropagate gradients through it. This means that if you use the output tensor in an operation that computes a gradient, then the gradient will be calculated with respect to the random numbers in the output tensor.
 
 #For example, the following code creates a random tensor with requires_grad set to True. Then, it computes the mean of the tensor and backpropagates the gradient through the mean.
+
+# From Bard
+# The w matrix is a 5,3 matrix because the input tensor x is a 5-dimensional vector, and the expected output tensor y is a 3-dimensional vector. The matmul function multiplies two tensors together, and the output tensor will have the same number of dimensions as the first tensor. In this case, the output tensor z will have 5 dimensions, so the w matrix must have 5 dimensions as well.
+#
+#The w matrix is a random matrix, and the b vector is a random vector. These random values are used to train the model. The model will learn to adjust the values of w and b so that the output tensor z is as close to the expected output tensor y as possible.
+#
+#The binary_cross_entropy_with_logits function calculates the loss between the output tensor z and the expected output tensor y. The loss function is used to measure how well the model is performing. The model will learn to adjust the values of w and b so that the loss is minimized.
+#
+#The requires_grad keyword tells PyTorch to track the gradients of the w and b tensors. The gradients are used to update the values of w and b during training.
+#
 
 if 0:
     xt = torch.randn(10, requires_grad=True)
@@ -62,11 +100,11 @@ if 0:
 #For example, the following code creates a tensor of random numbers and computes its mean. Then, it backpropagates the gradient of the mean through the tensor.
 
 # Onward
-
-print(b)
-print(type(b))
-#print(dir(b))
-exit(0)
+if 0:
+    print(b)
+    print(type(b))
+    #print(dir(b))
+    exit(0)
 
 #In machine learning, logits are the unnormalized predictions of a model. They are the output of the last layer of a neural network before the softmax function is applied. The softmax function then converts the logits into probabilities.
 
@@ -113,6 +151,8 @@ exit(0)
 print(f"Gradient function for z = {z.grad_fn}")
 print(f"Gradient function for loss = {loss.grad_fn}")
 
+#exit(0)
+
 ######################################################################
 # Computing Gradients
 # -------------------
@@ -127,9 +167,10 @@ print(f"Gradient function for loss = {loss.grad_fn}")
 #
 
 loss.backward()
-print(w.grad)
-print(b.grad)
+print(f"w.grad = {w.grad}\n")
+print(f"b.grad = {b.grad}\n")
 
+#exit(0)
 
 ######################################################################
 # .. note::
@@ -158,11 +199,11 @@ print(b.grad)
 #
 
 z = torch.matmul(x, w)+b
-print(z.requires_grad)
+print(f"z.requires_grad) = {z.requires_grad}\n")
 
 with torch.no_grad():
     z = torch.matmul(x, w)+b
-print(z.requires_grad)
+print(f"z.requires_grad) = {z.requires_grad}\n")
 
 
 ######################################################################
@@ -172,7 +213,9 @@ print(z.requires_grad)
 
 z = torch.matmul(x, w)+b
 z_det = z.detach()
-print(z_det.requires_grad)
+print(f"z_det.requires_grad) = {z_det.requires_grad}\n")
+
+#exit(0)
 
 ######################################################################
 # There are reasons you might want to disable gradient tracking:
@@ -246,6 +289,8 @@ print(z_det.requires_grad)
 # the size of the original tensor, with respect to which we want to
 # compute the product:
 #
+
+print(f"Last Example: Tensor Gradients and Jacobian Products\n")
 
 inp = torch.eye(4, 5, requires_grad=True)
 out = (inp+1).pow(2).t()
