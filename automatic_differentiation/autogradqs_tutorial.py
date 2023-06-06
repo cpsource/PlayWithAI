@@ -329,3 +329,24 @@ print(f"\nCall after zeroing gradients\n{inp.grad}")
 # Further Reading
 # ~~~~~~~~~~~~~~~~~
 # - `Autograd Mechanics <https://pytorch.org/docs/stable/notes/autograd.html>`_
+
+#A scalar loss function is a loss function that outputs a single value. This is in contrast to vector loss functions, which output a vector of values. Scalar loss functions are typically used in machine learning applications, where the goal is to minimize the loss function.
+#
+#There are many different types of scalar loss functions, but some of the most common include:
+#
+#Mean squared error (MSE): This loss function is used to measure the average squared difference between the predicted values and the ground truth values.
+#Mean absolute error (MAE): This loss function is used to measure the average absolute difference between the predicted values and the ground truth values.
+#Cross entropy: This loss function is used in classification problems, where the goal is to predict the probability of each class.
+#The choice of loss function depends on the specific machine learning application. For example, MSE is often used for regression problems, while cross entropy is often used for classification problems.
+#
+#Here are some of the advantages of using scalar loss functions:
+#
+#They are easy to understand and interpret.
+#They are relatively easy to optimize using gradient descent.
+#They can be used to train models with a wide variety of architectures.
+#Here are some of the disadvantages of using scalar loss functions:
+#
+#They may not be able to capture all of the nuances of the problem.
+#They may not be able to generalize well to unseen data.
+#They may be sensitive to outliers.
+#Overall, scalar loss functions are a powerful tool for machine learning. By choosing the right loss function, you can train models that are more accurate and generalize better to unseen data.
