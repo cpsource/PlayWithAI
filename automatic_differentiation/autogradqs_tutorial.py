@@ -350,3 +350,64 @@ print(f"\nCall after zeroing gradients\n{inp.grad}")
 #They may not be able to generalize well to unseen data.
 #They may be sensitive to outliers.
 #Overall, scalar loss functions are a powerful tool for machine learning. By choosing the right loss function, you can train models that are more accurate and generalize better to unseen data.
+
+#The line of code inp = torch.eye(5, requires_grad=True) creates a 5x5 identity tensor inp with requires_grad set to True. This means that the gradients of any operations performed on inp will be tracked. For example, if we add 1 to each element of inp, the gradient of inp with respect to the input will be a 5x5 tensor with all elements equal to 1.
+
+#Here is an example of how requires_grad can be used:
+
+#Code snippet
+#import torch
+
+#inp = torch.eye(5, requires_grad=True)
+
+#out = inp + 1
+
+#out.backward()
+
+#print(inp.grad)
+#Use code with caution. Learn more
+#This code will print the following output:
+
+#Code snippet
+#tensor([[ 1., 0., 0., 0., 0.],
+#       [ 0., 1., 0., 0., 0.],
+#       [ 0., 0., 1., 0., 0.],
+#       [ 0., 0., 0., 1., 0.],
+#       [ 0., 0., 0., 0., 1.]])
+#Use code with caution. Learn more
+#As you can see, the gradient of inp with respect to the input is a 5x5 tensor with all elements equal to 1. This means that if we were to update the input by 1, the output would also be updated by 1.
+
+#requires_grad can be a powerful tool for training neural networks. By setting requires_grad to True, we can track the gradients of our operations, which allows us to use backpropagation to update the weights of our network.
+
+
+#The error message "RuntimeError: grad can be implicitly created only for scalar outputs" means that you are trying to call the backward() method on a tensor that is not a scalar. In this case, the tensor out is a 5x5 tensor, which is not a scalar.
+#
+#To fix this error, you need to either reduce the tensor out to a scalar before calling backward(), or you need to explicitly pass a gradient to backward().
+#
+#Here is an example of how to reduce the tensor out to a scalar before calling backward():
+#
+#Code snippet
+#out = out.mean()
+#
+#out.backward()
+#
+#print(inp.grad)
+#Use code with caution. Learn more
+#This code will print the following output:
+#
+#Code snippet
+#tensor([1.])
+#Use code with caution. Learn more
+#As you can see, the gradient of inp with respect to the input is now a 1-dimensional tensor with a single element equal to 1.
+#
+#Here is an example of how to explicitly pass a gradient to backward():
+#
+#Code snippet
+#out.backward(torch.ones(5))
+#
+#print(inp.grad)
+#Use code with caution. Learn more
+#This code will print the same output as the previous example.
+#
+#The best way to choose between reducing the tensor to a scalar or explicitly passing a gradient to backward() depends on your specific application. If you only need the gradient of a single element of the tensor, then it is more efficient to reduce the tensor to a scalar. However, if you need the gradients of all elements of the tensor, then it is more efficient to explicitly pass a gradient to backward().
+#
