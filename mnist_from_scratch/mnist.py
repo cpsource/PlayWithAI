@@ -1,8 +1,14 @@
+# from https://www.kaggle.com/code/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf-keras/notebook
+# and https://www.youtube.com/watch?v=w8yWXqWQYmU
+#
+# Mr. Zhang's example had to be modified to load a local copy of train.csv as I could only
+# find it in his kaggle workspace.
+#
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-data = pd.read_csv('train.csv')
+data = pd.read_csv('train.csv.bz2',compression={'method':'bz2'})
 
 data = np.array(data)
 m, n = data.shape
