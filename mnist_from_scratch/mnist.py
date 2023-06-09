@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+trace = 1
+
 data = pd.read_csv('train.csv.bz2',compression={'method':'bz2'})
 
 data = np.array(data)
@@ -54,21 +56,46 @@ def ReLU_deriv(Z):
 def one_hot(Y):
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
+
+    if trace:
+        with np.printoptions(threshold=np.inf):
+            print(f"Y.size = {Y.size}, Y.max() = {Y.max()}\n")
+            print(f"Y = {Y}\n")
+            print(f"one_hot_Y = {one_hot_Y}\n")
+
     one_hot_Y = one_hot_Y.T
+
+    if trace:
+        with np.printoptions(threshold=np.inf):
+            print(f"one_hot_Y.T = {one_hot_Y}\n")
+        
     return one_hot_Y
 
 def backward_prop(Z1, A1, Z2, A2, W1, W2, X, Y):
     one_hot_Y = one_hot(Y)
-    dZ2 = A2 - one_hot_Y
+    dZ2       = A2 - one_hot_Y
 
-    with np.printoptions(threshold=np.inf):
-        idx = 0
-        print(f"one_hot_Y = {one_hot_Y}\n")
-        print(f"A2[0]  = {A2[idx]}\n")
-        print(f"dZ2[0] = {dZ2[idx]}\n")
-    exit(0)
+    # Note: anything that's been one-hotted, will show up as -.9 something.
+
+    if trace:
+        with np.printoptions(threshold=np.inf):
+            print(f"A2 = {A2}\n")
+            print(f"dZ2 (A2-one_hot_Y) = {dZ2}\n")
+            
+            #idx = 0
+            #print(f"one_hot_Y = {one_hot_Y}\n")
+            #print(f"A2[0]  = {A2[idx]}\n")
+            #print(f"dZ2[0] = {dZ2[idx]}\n")
 
     dW2 = 1 / m * dZ2.dot(A1.T)
+
+    if trace:
+        with np.printoptions(threshold=np.inf):
+            print(f"m = {m}\n")
+            print(f"A1.T = {A1.T}\n")
+            print(f"dW2 = {dW2}\n")
+        exit(0)
+        
     db2 = 1 / m * np.sum(dZ2)
     dZ1 = W2.T.dot(dZ2) * ReLU_deriv(Z1)
     dW1 = 1 / m * dZ1.dot(X.T)
