@@ -10,18 +10,41 @@ import numpy as np
 
 # Note: Preserves the number of columns, but only one row is returned
 
+# Note: softmax is close to the sigmoid function
+
 def softmax(Z):
     A = np.exp(Z) / sum(np.exp(Z))
     return A
 
-def one_hot(Y):
+def one_hot_old(Y):
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-print()
-catdog = np.array([ 7, 3, 5, int(8.1) ])
+def one_hot(Y):
+    """
+    Calculates a one-hot vector for the input vector Y.
+
+    Args:
+        Y: A vector of categorical data.
+
+    Returns:
+        A one-hot vector for Y.
+    """
+
+    num_classes = Y.max() + 1
+    one_hot_Y = np.zeros((Y.size, num_classes))
+    tmp = np.arange(Y.size)
+    one_hot_Y[tmp, Y] = 1
+
+    print(f"num_classes = {num_classes}\n")
+    print(f"tmp = {tmp}, Y = {Y}, Y.size = {Y.size}\n")
+    print(f"np.arange(Y.size) = {np.arange(Y.size)}\n ")
+
+    return one_hot_Y
+
+catdog = np.array([ 1,2,5 ])
 print(f"catdog.size = {catdog.size}\n")
 print(f"catdog.max() = {catdog.max()}\n")
 print(f"catdog          = {catdog}\n")

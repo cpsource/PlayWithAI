@@ -25,7 +25,7 @@ X_train = data_train[1:n]
 X_train = X_train / 255.
 _,m_train = X_train.shape
 
-print(Y_train)
+print(f"Y_train = {Y_train}\n")
 
 def init_params():
     W1 = np.random.rand(10, 784) - 0.5
@@ -60,6 +60,14 @@ def one_hot(Y):
 def backward_prop(Z1, A1, Z2, A2, W1, W2, X, Y):
     one_hot_Y = one_hot(Y)
     dZ2 = A2 - one_hot_Y
+
+    with np.printoptions(threshold=np.inf):
+        idx = 0
+        print(f"one_hot_Y = {one_hot_Y}\n")
+        print(f"A2[0]  = {A2[idx]}\n")
+        print(f"dZ2[0] = {dZ2[idx]}\n")
+    exit(0)
+
     dW2 = 1 / m * dZ2.dot(A1.T)
     db2 = 1 / m * np.sum(dZ2)
     dZ1 = W2.T.dot(dZ2) * ReLU_deriv(Z1)
@@ -93,7 +101,8 @@ def gradient_descent(X, Y, alpha, iterations):
             print(get_accuracy(predictions, Y))
     return W1, b1, W2, b2
 
-W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.10, 500)
+W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.10, 500) # 0.01 is training rate or alpha
+                                                               # 500 is number of epochs
 
 def make_predictions(X, W1, b1, W2, b2):
     _, _, _, A2 = forward_prop(W1, b1, W2, b2, X)
