@@ -44,7 +44,7 @@ def one_hot(Y):
 
     return one_hot_Y
 
-catdog = np.array([ 1,2,5 ])
+catdog = np.array([ 0,1,2,0 ])
 print(f"catdog.size = {catdog.size}\n")
 print(f"catdog.max() = {catdog.max()}\n")
 print(f"catdog          = {catdog}\n")
