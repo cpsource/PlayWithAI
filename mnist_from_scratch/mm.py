@@ -36,7 +36,7 @@ if do_print:
 
 # X_hot is the four trials. We have 2 neurons, and three dummies which we use for the hot values of y
 X_hot = np.array([[0.5, 0.1,1,0,0], [0.3, 0.2,0,1,0], [0.7, 0.9,0,0,1],[0.8, 0.1, 1,0,0]])
-if 1 or do_print:
+if do_print:
     rows, cols = row_col(X_hot)
     print(f"X_hot =\n{X_hot}, rows = {rows}, cols = {cols}\n")
     
@@ -60,7 +60,7 @@ if do_print:
 
 #First_Layer/Hidden_layer_weights
 W_fc1 = np.array([[0.19, 0.55, 0.76],[0.33, 0.16, 0.97],[0.4 , 0.35, 0.7 ],[0.51, 0.85, 0.85],[0.54, 0.49, 0.57]])
-if 1 or do_print:
+if do_print:
     rows,cols = row_col(W_fc1)
     print(f"W_fc1 =\n{W_fc1}, rows = {rows}, cols = {cols}\n")
 
@@ -75,7 +75,7 @@ if do_print:
 #
 #Output_Layer/Output_layer_weights
 W_fc2 = np.array([[ 0.10],[ 0.03],[-0.17]])
-if do_print:
+if 1 or do_print:
     rows,cols = row_col(W_fc2)
     print(f"W_fc2 =\n{W_fc2}, row = {rows}, cols = {cols}\n")
 
@@ -103,7 +103,7 @@ trial = 0
 h2_idx = 1
 net_h2 = 0.0
 for x in [0,1,2,3,4]:
-    print(f"x = {x}, X_hot = {X_hot[trial,x]}, W_fcl = {W_fc1[x,h2_idx]}\n")
+    #print(f"x = {x}, X_hot = {X_hot[trial,x]}, W_fcl = {W_fc1[x,h2_idx]}\n")
     net_h2 += X_hot[trial,x] * W_fc1[x,h2_idx]
 net_h2 += 1 * b_fc1[h2_idx]
 out_h2 = sigmoid(net_h2)
@@ -114,8 +114,29 @@ trial = 0
 h3_idx = 2
 net_h3 = 0.0
 for x in [0,1,2,3,4]:
-    print(f"x = {x}, X_hot = {X_hot[trial,x]}, W_fcl = {W_fc1[x,h3_idx]}\n")
+    #print(f"x = {x}, X_hot = {X_hot[trial,x]}, W_fcl = {W_fc1[x,h3_idx]}\n")
     net_h3 += X_hot[trial,x] * W_fc1[x,h3_idx]
 net_h3 += 1 * b_fc1[h3_idx]
-out_h2 = sigmoid(net_h3)
-print(net_h3,out_h2)
+out_h3 = sigmoid(net_h3)
+print(net_h3,out_h3)
+
+#
+# Output
+#
+
+output = out_h1*W_fc2[0] + out_h2*W_fc2[1] + out_h3*W_fc2[2] + 1*b_fc2[0]
+print(f"output = {output}\n")
+
+#
+# Now calculate total error by root mean square
+#
+error = (y[trial] - output)**2
+print(f"error = {error}\n")
+
+# Good ! We agree with the presentation
+
+#
+# The Backward Pass
+#
+
+#TBD
