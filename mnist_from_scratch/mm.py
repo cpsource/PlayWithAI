@@ -8,6 +8,9 @@ import numpy as np
 # define to 1 to trace
 do_print = 0
 
+# define the learning rate
+alpha = learning_rate = 0.5
+
 def sigmoid(z):
     return 1/(1+np.exp(-z))
 
@@ -139,4 +142,27 @@ print(f"error = {error}\n")
 # The Backward Pass
 #
 
-#TBD
+# first, lets see how we should adjust b_fc2[0]
+#
+# We calculate the negative gradient of the function using the chain rule
+#
+#
+# the chain rule says
+# partial(error)/partial(b2) = partial(error)/partial(output) TIMES partial(output)/partial(b2)
+#
+# since error = (y - output)**2
+#
+# partial(error)/partial(output) = -2*(y - output)
+#
+# Note: The minus comes as we need to move in the negative of the gradient
+#
+# and
+#
+# partial(output)/partial(b2) = 1
+#
+b2_adjust = -2.0 * (y[trial] - output)
+#print(f"b2_adjust = {b2_adjust}\n")
+b2_plus = b_fc2[0] - alpha * b2_adjust
+print(f"b2_plus = {b2_plus}\n")
+
+# do we continuously update the model as we go, or wait for the end?
