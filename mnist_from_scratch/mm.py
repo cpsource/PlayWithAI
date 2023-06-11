@@ -12,7 +12,11 @@ do_print = 0
 alpha = learning_rate = 0.5
 
 def sigmoid(z):
-    return 1/(1+np.exp(-z))
+    return 1.0/(1.0+np.exp(-z))
+
+def sigmoid_derivative(z):
+    tmp = sigmoid(z)
+    return tmp * (1.0-tmp)
 
 def row_col(z):
     shape = z.shape
@@ -161,8 +165,26 @@ print(f"error = {error}\n")
 # partial(output)/partial(b2) = 1
 #
 b2_adjust = -2.0 * (y[trial] - output)
-#print(f"b2_adjust = {b2_adjust}\n")
+print(f"b2_adjust = {b2_adjust}\n")
 b2_plus = b_fc2[0] - alpha * b2_adjust
-print(f"b2_plus = {b2_plus}\n")
+print(f"b2_plus (b2 becomes this on next iteration) = {b2_plus}\n")
 
 # do we continuously update the model as we go, or wait for the end?
+
+derror_d16 = out_h1 * b2_adjust
+o16p = W_fc2[0] - alpha*derror_d16
+
+derror_d17 = out_h2 * b2_adjust
+o17p = W_fc2[1] - alpha*derror_d17
+
+derror_d18 = out_h3 * b2_adjust
+o18p = W_fc2[2] - alpha*derror_d18
+
+print(derror_d16,o16p)
+print(derror_d17,o17p)
+print(derror_d18,o18p)
+
+# Note oXp are the new o16,o17,o18
+
+# Now, From Output Layer Neuron to Bias of Hidden Layer
+
