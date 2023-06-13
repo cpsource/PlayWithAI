@@ -1,9 +1,22 @@
 import time
+import argparse
 import torch
 import numpy as np
 #import pandas as pd
 #import matplotlib.pyplot as plt
 
+# parse command line
+
+parser = argparse.ArgumentParser(description="PyTorch Example")
+parser.add_argument('--disable-cuda', action='store_true',
+                    help='Disable CUDA')
+args = parser.parse_args()
+args.device = None
+if not args.disable_cuda and torch.cuda.is_available():
+    args.device = torch.device('cuda')
+else:
+    args.device = torcdh.device('cpu')
+    
 #############################################
 # Get Device for Training
 # -----------------------
@@ -19,6 +32,8 @@ device = (
     else "cpu"
 )
 print(f"Using {device} device")
+# How many gpu's
+print(f"torch.cuda.device_count()= {torch.cuda.device_count()}\n")
 
 
 if 0:
@@ -209,11 +224,20 @@ if 0:
         z2 = torch.Tensor.numpy(z1)
         print(f"z2 = {z2}, type(z2) = {type(z2)}\n")
 
-# not quite random
-print("# Not quite random if use manual_seed")
-RANDOM_SEED = 42
-torch.manual_seed(RANDOM_SEED)
-r_A = torch.rand(3,4)
-torch.manual_seed(RANDOM_SEED)
-r_B = torch.rand(3,4)
-print(r_A==r_B)
+        # not quite random
+        print("# Not quite random if use manual_seed")
+        RANDOM_SEED = 42
+        torch.manual_seed(RANDOM_SEED)
+        r_A = torch.rand(3,4)
+        torch.manual_seed(RANDOM_SEED)
+        r_B = torch.rand(3,4)
+        print(r_A==r_B)
+
+# move to GPU
+tensor = torch.tensor([1,2,3])
+print(tensor,tensor.device)
+tensor_on_gpu = tensor.to(device)
+print(tensor_on_gpu,tensor_on_gpu.device)
+tensor_back_on_cpu = tensor_on_gpu.cpu().numpy()
+print(tensor_back_on_cpu,type(tensor_back_on_cpu))
+
