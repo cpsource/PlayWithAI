@@ -46,10 +46,18 @@ print(f"Using {device} device")
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.flatten = nn.Flatten()
+        self.flatten = nn.Flatten() # convert 2D 28x28 image into a contiguous array of 784 pixel values
+                                    # (the minibatch dimension (at dim=0) is maintained)
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28*28, 512),
-            nn.ReLU(),
+            nn.Linear(28*28, 512),  # The linear layer is a module that applies a linear transformation in the input
+                                    # using its stored weights and biases.
+                                    #
+                                    # output = input @ weight + bias
+                                    #
+            nn.ReLU(),              # Non-inear activations are what create the complex mapping between the model's
+                                    # inputs and outputs. They are applied after linear transformations to
+                                    # introduce nonlinearity, helping neural networks learn a wide
+                                    # variety of phenomena.
             nn.Linear(512, 512),
             nn.ReLU(),
             nn.Linear(512, 10)
@@ -61,7 +69,9 @@ class NeuralNetwork(nn.Module):
         return logits
 
 model = NeuralNetwork().to(device)
-print(model)
+print(f"Model: {model}\n")
+for name, param in model.named_parameters():
+    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]}\n")
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
