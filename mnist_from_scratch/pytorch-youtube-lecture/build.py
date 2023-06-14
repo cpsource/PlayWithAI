@@ -127,7 +127,7 @@ optimizer = torch.optim.SGD(model_0.parameters(),
                             
 # training loop
 
-epochs = 5000
+epochs = 1700
 for epoch in range(epochs):
     # set model to training mode
     model_0.train()
@@ -149,13 +149,21 @@ for epoch in range(epochs):
 
     # step the optimizer (perform gradient descent)
     optimizer.step()
-    
+   
+    # Testing
     model_0.eval() # turn off gradient tracking
+    with torch.inference_mode():
+        # do forward pass
+        test_pred = model_0(X_test)
+        # calculate the loss
+        test_loss = loss_fn(test_pred, y_test)
 
-    print(f"Epoch: {epoch}, loss = {loss}\n")
-    print(list(model_0.parameters()))
-    print(model_0.state_dict())
+    if epoch % 100 == 0:
+         print(f"Epoch: {epoch}, test_loss = {test_loss}\n")
+         print(list(model_0.parameters()))
+         print(model_0.state_dict())
 
+# display a graph         
 y_pred_np = np.array(y_pred.detach())
 #print(y_pred_np)
 #print(X_train)
