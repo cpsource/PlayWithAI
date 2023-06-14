@@ -132,7 +132,7 @@ if check_file_exists('model.pth'):
     model = NeuralNetwork().to(device)
     model.load_state_dict(torch.load("model.pth"))
 else:
-    epochs = 5
+    epochs = 20 
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train(train_dataloader, model, loss_fn, optimizer)
@@ -163,3 +163,7 @@ with torch.no_grad():
     predicted, actual = classes[pred[0].argmax(0)], classes[y]
     print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
+print(f"Model: {model}\n")
+for name, param in model.named_parameters():
+    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]}\n")
+    
