@@ -58,6 +58,7 @@ class NeuralNetwork(nn.Module):
                                     # inputs and outputs. They are applied after linear transformations to
                                     # introduce nonlinearity, helping neural networks learn a wide
                                     # variety of phenomena.
+            #nn.Dropout(),
             nn.Linear(512, 512),
             nn.ReLU(),
             nn.Linear(512, 10)
