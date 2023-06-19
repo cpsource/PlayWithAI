@@ -1,6 +1,9 @@
 # redo , converting to pyTorch
 # where.from : https://mmuratarat.github.io/2020-01-09/backpropagation
 
+# This is really a stupid model as it only trains to the hots
+# But, never the less, it's a good learning exercise for pyTorch
+
 import os
 import torch
 from torch import nn
@@ -13,6 +16,7 @@ device = (
     if torch.backends.mps.is_available()
     else "cpu"
 )
+# runs slower with cuda
 device = "cpu"
 print(f"Using {device} device")
 
@@ -34,6 +38,9 @@ X = torch.tensor([[0.5, 0.1,1,0,0],
                   [0.7, 0.9,0,0,1],
                   [0.8, 0.1, 1,0,0]], dtype=torch.float32, device=device)
 
+#print(f"shape = {X.shape}\n")
+#exit(0)
+
 y = torch.tensor([[.1], [.6], [.4], [.1]], dtype=torch.float32, device=device)
 
 class NeuralNetwork(nn.Module):
@@ -52,6 +59,10 @@ class NeuralNetwork(nn.Module):
 #            self.l3 = nn.Linear(3, 1),
 #            self.l4 = nn.ReLU()
 #        )
+
+# Note: imput shape of x must be [batch-size,in_features]
+# If we break up X into x's before we call forward, it takes
+# three or four times longer
 
     def forward(self, x):
         #x = self.flatten(x)
@@ -129,10 +140,11 @@ def train(model, x, y, loss_fn, optimizer):
 # number of epochs to execute
 epochs = 10000
 for epoch in range(epochs):
-    if not epoch % 100:
+    if not epoch % 1000:
         print(f"Epoch {epoch}\n-------------------------------")
-    for idx in range(0,4):
-        train(model, X[idx], y[idx], loss_fn, optimizer)
+    train(model, X, y, loss_fn, optimizer)
+#    for idx in range(0,4):
+#        train(model, X[idx].to(device), y[idx].to(device), loss_fn, optimizer)
 
 #
 # Test
@@ -142,10 +154,14 @@ model.eval()
 
 for idx in range(0,4):
         # test
-        x = X[idx] # torch.tensor([0.5, 0.1,1,0,0])
+        x = X[idx]
         y_pred = model(x)
         print(f"x = {x}, y = {y[idx]}, y_pred = {y_pred}\n")
 
+x = torch.tensor([0.5, 0.1,0,0,0])
+y_pred = model(x)
+print(f"x = {x}, y = {y[0]}, y_pred = {y_pred}\n")
+        
 exit(0)
 
 #                  [0.3, 0.2,0,1,0],
