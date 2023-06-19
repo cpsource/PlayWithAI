@@ -130,7 +130,7 @@ def train(model, x, y, loss_fn, optimizer):
 epochs = 10000
 for epoch in range(epochs):
     if not epoch % 100:
-        print(f"Epoch {epoch+1}\n-------------------------------")
+        print(f"Epoch {epoch}\n-------------------------------")
     for idx in range(0,4):
         train(model, X[idx], y[idx], loss_fn, optimizer)
 
