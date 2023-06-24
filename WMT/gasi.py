@@ -12,6 +12,11 @@ import numpy as np
 import torch
 import pickle
 import os
+import matplotlib.pyplot as plt
+import sys
+import pandas as pd
+
+np.set_printoptions(threshold=sys.maxsize)
 
 file_path = 'wmt-1m.pkl'
 
@@ -26,23 +31,32 @@ else:
     with open(file_path,"wb") as f:
         pickle.dump(d1,f)
 
-#print(type(d1))
-#print(d1)
+with pd.option_context("display.max_rows", None , "display.max_columns", None):
+    print(type(d1))
+    print(d1)
 #print(dir(d1))
 #print(d1.ndim)
 #print(d1.shape)
 #print(d1.dtypes)
-print(d1['Close'])
+#print(d1['Close'])
 
-#print(f"d1.keys() = {d1.keys}\nDone.")
+print(f"d1.keys() = {d1.keys}\nDone.")
 
-exit(0)
+#exit(0)
 
 # cponvert to numpy
 data_numpy = d1.values
 
 # convert to PyTorch tensor
-data_tensor = torch.from_numpy(data_numpy)
+data_tensor = torch.from_numpy(data_numpy)[:,3]
+data_tensor = data_tensor[:388]
+min_value = torch.min(data_tensor)
+max_value = torch.max(data_tensor)
+data_tensor = (data_tensor - min_value)/(max_value - min_value)
+print(data_tensor.shape)
 
 # Print
-print(data_tensor)
+print(data_tensor.shape)
+
+plt.plot(data_tensor)
+plt.show()
