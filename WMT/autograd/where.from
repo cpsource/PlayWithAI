@@ -1,1 +1,4 @@
 https://github.com/HIPS/autograd/tree/master
+
+It still bugs me because python3 looks in the current directory FIRST
+before loading libraries. Therefore, do not name any files autograd.py !
