@@ -42,7 +42,7 @@ with pd.option_context("display.max_rows", None , "display.max_columns", None):
 
 print(f"d1.keys() = {d1.keys}\nDone.")
 
-#exit(0)
+exit(0)
 
 # cponvert to numpy
 data_numpy = d1.values
