@@ -4,4 +4,4 @@ zz*
 __pycache__
 ../mnist_from_scratch/__pycache__
 yfinance.cache
-wmt-1m.pkl
+*.pkl
