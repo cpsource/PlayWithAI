@@ -1,3 +1,16 @@
+#
+# The problem with this approach is you have to know the data format to retrieve
+# the data, else you get garbage. For example, store an array of ints, and read back
+# an array of garbage floats.
+#
+# I've overcome this by first encoding into pickle, then storing it. Advantage, pickle
+# stores metadata that is used on retrieval so you get back the type of a thing
+# you stored
+#
+# And, BTW, ChatGPT seems to suffer from the same types of problems that Bard
+# has with coding. Still, I would rate ChatGPT slightly better than Bard.
+#
+
 import sqlite3
 import torch
 
