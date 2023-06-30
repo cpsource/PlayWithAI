@@ -80,9 +80,11 @@ class CompanyData:
         
         pass
 
+# Ug, pickle won't save/restore with cache
+
 file_path = 'wmt-CompanyData.pkl'
 
-if os.path.exists(file_path):
+if False and os.path.exists(file_path):
     print("Loading from cache")
     with open(file_path,"rb") as f:
         clone_data = pickle.load(f)
@@ -95,11 +97,22 @@ else:
     msft = yf.Ticker("WMT", session=session)    
     data = CompanyData()
     print(dir(data))
+
+    d = msft.history(start="2023-06-28",end="2023-06-30",interval='1m')
+    print(type(d),d)
+    print(d.shape)
+    print(d.index.shape)
+    max = len(d.index)
+    print(max)
+    print(d.index[0])
+    for idx in range(max):
+        print(idx,d.index[idx])
+        
     #bucket_class.close()
     #data.backend.close()
     #exit(0)
     
-    clone_data = CloneCompanyData(data)
+    #clone_data = CloneCompanyData(data)
     
     #clone_data = CloneCompanyData()
     # field by field copy
@@ -107,8 +120,8 @@ else:
 
     #clone_data = copy.deepcopy(data)
     
-    with open(file_path,"wb") as f:
-        pickle.dump(clone_data,f)
+    #with open(file_path,"wb") as f:
+    #pickle.dump(clone_data,f)
     
 # msft must be setup before the class constructor    
 #msft = yf.Ticker("WMT", session=session)    
@@ -117,7 +130,7 @@ else:
 #ticker = yf.Ticker("WMT", session=session)
 #print(ticker.info)
 
-print(clone_data.info)
+#print(clone_data.info)
 
 #
 # Now save onto disk

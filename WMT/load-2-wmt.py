@@ -79,11 +79,11 @@ if os.path.exists(file_path):
 else:
     print("Loading from Yahoo")
     wmt = yf.Ticker('WMT')
-    d1 = wmt.history(start="2023-06-18",end="2023-06-23",interval='1m')
+    d = wmt.history(start="2023-06-18",end="2023-06-23",interval='1m')
     with open(file_path,"wb") as f:
-        pickle.dump(d1,f)
+        pickle.dump(d,f)
 
-# Take the first day
+# Take the days
 d1 = d[:388]
 d2 = d[388:388*2]
 d3 = d[388*2:-4]
