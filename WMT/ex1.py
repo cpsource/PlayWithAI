@@ -1,3 +1,5 @@
+# See also: https://pandas.pydata.org/docs/reference/api/pandas.Timestamp.html
+
 import yfinance as yf
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
@@ -6,6 +8,7 @@ from pyrate_limiter import Duration, RequestRate, Limiter
 import pickle
 import os
 import copy
+import chatgpt_moonphase as cmp
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
@@ -80,6 +83,30 @@ class CompanyData:
         
         pass
 
+    def show(self):
+        print(f"self.info = {self.info}\n")
+        print(f"self.history = {self.history}\n")
+        print(f"self.history_metadata = {self.history_metadata}\n")
+        print(f"self.actions = {self.actions}\n")
+        print(f"self.dividends = {self.dividends}\n")
+        print(f"self.splits = {self.splits}\n")
+        print(f"self.capital_gains = {self.capital_gains}\n")
+        print(f"self.income_stmt = {self.income_stmt}\n")
+        print(f"self.quarterly_income_stmt = {self.quarterly_income_stmt}\n")
+        print(f"self.balance_sheet = {self.balance_sheet}\n")
+        print(f"self.quarterly_balance_sheet = {self.quarterly_balance_sheet}\n")
+        print(f"self.cashflow = {self.cashflow}\n")
+        print(f"self.quarterly_cashflow = {self.quarterly_cashflow}\n")
+        print(f"self.major_holders = {self.major_holders}\n")
+        print(f"self.institutional_holders = {self.institutional_holders}\n")
+        print(f"self.mutualfund_holders = {self.mutualfund_holders}\n")
+        print(f"self.earnings_dates = {self.earnings_dates}\n")
+        print(f"self.isin = {self.isin}\n")
+        print(f"self.options = {self.options}\n")
+        print(f"self.news = {self.news}\n")
+        print(f"self.option_chain = {self.option_chain}\n")
+        print(f"self.shares_full = {self.shares_full}\n")
+        
 # Ug, pickle won't save/restore with cache
 
 file_path = 'wmt-CompanyData.pkl'
@@ -96,17 +123,26 @@ else:
         backend=SQLiteCache("yfinance.cache"),)
     msft = yf.Ticker("WMT", session=session)    
     data = CompanyData()
-    print(dir(data))
+    data.show()
 
+    print("History")
+    
     d = msft.history(start="2023-06-28",end="2023-06-30",interval='1m')
     print(type(d),d)
     print(d.shape)
     print(d.index.shape)
+    print(type(d.index[0]))
     max = len(d.index)
     print(max)
     print(d.index[0])
-    for idx in range(max):
-        print(idx,d.index[idx])
+    tim = d.index[0].strftime('%Y-%m-%d %H:%M:%S')
+    print(f"tim = {tim}\n")
+
+    phase, phase_name = cmp.get_moon_phase(tim)
+    print(f"phase = {phase}, name = {phase_name}\n")
+    
+    #for idx in range(max):
+    #print(idx,d.index[idx])
         
     #bucket_class.close()
     #data.backend.close()
