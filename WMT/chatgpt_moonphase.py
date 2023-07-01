@@ -1,9 +1,10 @@
 import ephem
 
-def get_moon_phase():
+def get_moon_phase(cphase):
     # Compute the current phase of the moon
     moon = ephem.Moon()
-    moon.compute(ephem.now())
+    #    moon.compute(ephem.now())
+    moon.compute(cphase)
     phase = moon.phase / 100  # Normalize phase value to range [0, 1]
 
     # Determine the phase name based on the phase value
@@ -20,6 +21,7 @@ def get_moon_phase():
 
     return phase, phase_name
 
-# Call the function to get the current moon phase
-phase, current_phase = get_moon_phase()
-print(f"Phase Percent: {phase},Current moon phase name:", current_phase)
+if __name__ == "__main__":
+    # Call the function to get the current moon phase
+    phase, current_phase = get_moon_phase('2023-06-28 09:30:00')
+    print(f"Phase Percent: {phase},Current moon phase name:", current_phase)
