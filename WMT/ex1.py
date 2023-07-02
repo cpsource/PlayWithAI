@@ -112,6 +112,7 @@ class CompanyData:
 # Ug, pickle won't save/restore with cache
 
 file_path = 'wmt-CompanyData.pkl'
+ticker = 'WMT'
 
 if False and os.path.exists(file_path):
     print("Loading from cache")
@@ -123,7 +124,7 @@ else:
         limiter=Limiter(RequestRate(2, Duration.SECOND*5)),  # max 2 requests per 5 seconds
         bucket_class=MemoryQueueBucket,
         backend=SQLiteCache("yfinance.cache"),)
-    msft = yf.Ticker("WMT", session=session)    
+    msft = yf.Ticker(ticker, session=session)    
     data = CompanyData()
     data.show()
 
@@ -178,8 +179,9 @@ else:
 
     try:
         # Insert the np array into the database 
-        cursor.execute("INSERT INTO my_table (datetime_column, moon_phase, closes) VALUES (?, ?, ?)",
+        cursor.execute("INSERT INTO my_table (datetime_column, ticker, moon_phase, closes) VALUES (?, ?, ?, ?)",
                        (tim,
+                        ticker,
                         phase,
                         sqlite3.Binary(np_X1_blob)))
         conn.commit()

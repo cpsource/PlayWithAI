@@ -5,6 +5,7 @@ import os
 
 import add_column_closes as acc
 import add_column_moon_phase as acmp
+import add_column_ticker as act
 
 def remove_file(file_name):
   """Removes the file with the given name."""
@@ -29,7 +30,7 @@ def create_database(file_name):
         #cursor.execute('''ALTER TABLE my_table ADD COLUMN datetime_sort INTEGER''')
         
         # Update the new column with the sorted values
-        cursor.execute('''UPDATE my_table SET datetime_column = strftime('%Y%m%d%H%M%S', datetime_column)''')
+        #cursor.execute('''UPDATE my_table SET datetime_column = strftime('%Y%m%d%H%M%S', datetime_column)''')
         
         # Create an index on the datetime_sort column
         #cursor.execute('''CREATE INDEX IF NOT EXISTS idx_datetime_sort ON my_table (datetime_sort)''')
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     file_name = "database.db"
     remove_file(file_name)
     create_database(file_name)
+    act.add_column_ticker()
     acmp.add_column_moon_phase()
     acc.add_column_closes()
 
