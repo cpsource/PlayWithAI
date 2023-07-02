@@ -1,3 +1,6 @@
+# Must handle closing early days such as
+# jul3, tgiving eve, christmas eve
+
 import yfinance as yf
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
