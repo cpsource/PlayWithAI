@@ -1,4 +1,5 @@
 import datetime
+#from datetime import date
 
 def is_wall_street_trading_day(dt):
   """
@@ -37,8 +38,31 @@ def is_wall_street_trading_day(dt):
 
 def is_wall_street_trading_day_str(date):
   cur_d = datetime.datetime.strptime(date, "%Y-%m-%d")
-  return is_wall_street_trading_day(cur_d)
-  
+
+  if cur_d.year != 2023:
+    print(f"oops, update the code in trading_day.py!")
+    exit(0)
+    
+  tmp = is_wall_street_trading_day(cur_d)
+
+  if 0:
+    # lets cross-check
+    k1 = cur_d.date()
+    print(type(k1))
+    print(dir(k1))
+    if k1.is_working_day() and not k1.is_holiday():
+      # market should be open
+      if not tmp:
+        print(f"disagreement #1 about markets being open")
+      else:
+        # market should be closed
+        if tmp:
+          print(f"disagreement #2 about markets being open")
+
+  # return result
+  return tmp
+
 if __name__ == "__main__":
   dt = datetime.datetime(2023, 6, 1)
   print(is_wall_street_trading_day(dt))
+  print(is_wall_street_trading_day_str("2023-01-01"))
