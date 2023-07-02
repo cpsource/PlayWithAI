@@ -35,7 +35,10 @@ def is_wall_street_trading_day(dt):
 
   return True
 
+def is_wall_street_trading_day_str(date):
+  cur_d = datetime.datetime.strptime(date, "%Y-%m-%d")
+  return is_wall_street_trading_day(cur_d)
+  
 if __name__ == "__main__":
   dt = datetime.datetime(2023, 6, 1)
   print(is_wall_street_trading_day(dt))
-

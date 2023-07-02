@@ -11,6 +11,7 @@ import numpy as np
 import sqlite3
 import present
 import add_one_day as aod
+import trading_day
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
@@ -126,8 +127,8 @@ def do_ticker(conn, ticker, start_date, end_date):
 # Open the SQLite database
 conn = sqlite3.connect('database.db')
 
-start_date_str = "2023-06-26"
-end_date_str   = "2023-06-28"
+start_date_str = "2023-06-23"
+end_date_str   = "2023-07-01"
 
 for ticker in stock_watch_list:
     print(ticker)
@@ -140,10 +141,12 @@ for ticker in stock_watch_list:
         
     while not aod.compare_dates(end_date_tmp_str,end_date_str):
 
-        print(f"calling do_ticker with {cur_date_str}, {end_date_tmp_str}")
-
-        do_ticker(conn,ticker,cur_date_str, end_date_tmp_str)
-
+        if trading_day.is_wall_street_trading_day_str(cur_date_str):
+            print(f"calling do_ticker with {cur_date_str}, {end_date_tmp_str}")
+            do_ticker(conn,ticker,cur_date_str, end_date_tmp_str)
+        else:
+            print(f"Not a trading day: {cur_date_str}")
+            
         # on to next date
         cur_d = datetime.datetime.strptime(cur_date_str, "%Y-%m-%d")
         cur_d = aod.add_one_day(cur_d)
