@@ -6,6 +6,7 @@ import os
 import add_column_closes as acc
 import add_column_moon_phase as acmp
 import add_column_ticker as act
+import add_column_ys as acy
 
 def remove_file(file_name):
   """Removes the file with the given name."""
@@ -58,6 +59,7 @@ if __name__ == "__main__":
     create_database(file_name)
     act.add_column_ticker()
     acmp.add_column_moon_phase()
+    acy.add_column_ys()
     acc.add_column_closes()
 
 print("Done")    

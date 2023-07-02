@@ -179,18 +179,24 @@ else:
 
     try:
         # Insert the np array into the database 
-        cursor.execute("INSERT INTO my_table (datetime_column, ticker, moon_phase, closes) VALUES (?, ?, ?, ?)",
+        cursor.execute("INSERT INTO my_table (datetime_column, ticker, moon_phase, y1, y2, y3, closes) VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (tim,
                         ticker,
                         phase,
+                        0,0,0,
                         sqlite3.Binary(np_X1_blob)))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error occurred at {tim} while inserting row:", e)
 
     try:        
-        cursor.execute("INSERT INTO my_table (datetime_column, moon_phase, closes) VALUES (?, ?, ?)",
-                       (tim1, phase1, (sqlite3.Binary(np_X2_blob))))
+        # Insert the np array into the database 
+        cursor.execute("INSERT INTO my_table (datetime_column, ticker, moon_phase, y1, y2, y3, closes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (tim1,
+                        ticker,
+                        phase1,
+                        0,0,0,
+                        sqlite3.Binary(np_X2_blob)))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error occurred at {tim1} while inserting row:", e)
