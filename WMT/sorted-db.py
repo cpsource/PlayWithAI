@@ -25,7 +25,7 @@ def create_database(file_name):
         # Create the table if it doesn't exist
         cursor.execute('''CREATE TABLE IF NOT EXISTS my_table (
         id INTEGER PRIMARY KEY,
-        datetime_column TEXT UNIQUE)''')
+        datetime_column TEXT)''')
         
         # Add a new column for sorting by datetime
         #cursor.execute('''ALTER TABLE my_table ADD COLUMN datetime_sort INTEGER''')
