@@ -7,8 +7,10 @@ from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
 from pyrate_limiter import Duration, RequestRate, Limiter
 import pickle
 import os
-import copy
+#import copy
 import chatgpt_moonphase as cmp
+import numpy as np
+import sqlite3
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
@@ -140,7 +142,60 @@ else:
 
     phase, phase_name = cmp.get_moon_phase(tim)
     print(f"phase = {phase}, name = {phase_name}\n")
+
+    # check for start of second date
+    tim1 = d.index[390].strftime('%Y-%m-%d %H:%M:%S')
+    phase1, phase_name1 = cmp.get_moon_phase(tim1)
     
+    print(f"tim1[390] = {tim1}\n")
+    
+    d1 = d[:390]
+    X1 = d1['Close']
+    d2 = d[390:390*2]
+    X2 = d2['Close']
+
+    print(type(X1),X1)
+    print(X1.shape)
+
+    # create numpy arrays
+    np_X1 = np.array(X1, dtype=np.float32)
+    np_X2 = np.array(X2, dtype=np.float32)
+
+    # debug info
+    print(type(np_X1),np_X1)
+    print(np_X1.shape)
+
+    # now convert np_Xn to blob with pickle
+    # Serialize the tensor to a byte array
+    np_X1_blob = pickle.dumps(np_X1)
+    np_X2_blob = pickle.dumps(np_X2)
+
+    # store in database
+
+    # Connect to the SQLite database
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    try:
+        # Insert the np array into the database 
+        cursor.execute("INSERT INTO my_table (datetime_column, moon_phase, closes) VALUES (?, ?, ?)",
+                       (tim,
+                        phase,
+                        sqlite3.Binary(np_X1_blob)))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error occurred at {tim} while inserting row:", e)
+
+    try:        
+        cursor.execute("INSERT INTO my_table (datetime_column, moon_phase, closes) VALUES (?, ?, ?)",
+                       (tim1, phase1, (sqlite3.Binary(np_X2_blob))))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error occurred at {tim1} while inserting row:", e)
+    
+    # Close the database connection
+    conn.close()
+
     #for idx in range(max):
     #print(idx,d.index[idx])
         

@@ -11,7 +11,7 @@ def add_column_closes():
 
         # Commit the changes
         conn.commit()
-        print("Column 'moon_phase' added successfully.")
+        print("Column 'closes' added successfully.")
     except sqlite3.Error as e:
         print("Error occurred while adding the column:", e)
 
