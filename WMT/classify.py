@@ -1,6 +1,9 @@
 import sqlite3
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
+import get_ys
+import time
 
 def update_record(conn, id, field, value):
   """Updates the value of the given field for the record with the given ID.
@@ -46,19 +49,58 @@ def main():
   closes_column_index = get_column_index(cursor,column_name)
   #print(closes_column_index)
   #print(type(results), len(results))
-
+  ticker_name = 'ticker'
+  ticker_column_index = get_column_index(cursor,ticker_name)
+  
   # Step through the results one at a time and update the name field.
   for row in results:
     id = row[0]
-    X1 = pickle.loads(row[closes_column_index])
+    X = pickle.loads(row[closes_column_index])
 
-    print(f"id = {id}, X1 = {X1}")
+    N = len(X)
+    n = np.arange(N)
+    
+    #print(f"id = {id}, X1 = {X1}")
     #update_record(conn, id, "name", "John Doe")
 
-    exit(0)
+    # Print some info
+    min = np.min(X)
+    max = np.max(X)
+    spread = max-min
+    print(f"ticker = {row[ticker_column_index]}, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
     
+    #
+    # Plot
+    #
+    plt.figure(figsize = (12, 6))
+
+    if False:
+      plt.subplot(121)
+      plt.stem(n,X[2], 'b', \
+               markerfmt=" ", basefmt="-b")
+      plt.xlabel('Freq (Hz)')
+      plt.ylabel('FFT Amplitude |X(freq)|')
+
+    if True:
+      #plt.subplot(122)
+      plt.plot(n, X, 'r')
+      plt.xlabel('Minuite')
+      plt.ylabel('Price')
+      plt.tight_layout()
+      
+      plt.show(block=False)
+      plt.pause(5)
+      plt.close()
+      
+    # ask
+    result = get_ys.get_input(id)
+
+    # update record
+    cursor.execute("UPDATE my_table SET y1 = ?, y2 = ?, y3 = ? WHERE id = ?",
+                   result)
+    conn.commit()
+
   conn.close()
 
 if __name__ == "__main__":
   main()
-
