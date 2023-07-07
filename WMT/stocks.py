@@ -19,7 +19,8 @@ import trading_day
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
 
-stock_watch_list = ( "AAPL",
+stock_watch_list = ( "TJX",
+	"AAPL",
         "MSFT",
         "AMZN",
         "BRK.A",

@@ -78,10 +78,12 @@ def scale_tensor(tensor):
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.l1 = nn.Linear(390, 80)
+        self.l1 = nn.Linear(390, 100)
         self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(80, 3)
-        self.l4 = nn.ReLU()
+        self.l3 = nn.Linear(100,50)
+        self.l4 = nn.Sigmoid()
+        self.l5 = nn.Linear(50, 3)
+        self.l6 = nn.ReLU()
 #        self.l4 = nn.Softmax(dim=1)
 
 #        
@@ -106,18 +108,15 @@ class NeuralNetwork(nn.Module):
         #show_model("Start of Forward",self,x)
 
         pred_1 = self.l1(x)
-
-        #show_model("After nn.Linear(5,3)",self,pred_1)
-        
         pred_2 = self.l2(pred_1)
-
-        #show_model("After nn.Sigmoid()", self,pred_2)
-        
         pred_3 = self.l3(pred_2)
+        pred_4 = self.l4(pred_3)
+        pred_5 = self.l5(pred_4)
+        logits = pred_6 = self.l6(pred_5)
 
         #show_model("After nn.Linuear(3,1) (logits)",self,pred_3)
                 
-        logits = self.l4(pred_3)
+        #logits = self.l4(pred_3)
 
         #show_model("After nn.ReLU (logits)", self,logits)
 
