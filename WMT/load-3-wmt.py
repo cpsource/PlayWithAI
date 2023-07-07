@@ -36,6 +36,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from torch import nn
 import sqlite3
+import save_my_model as smm
 
 import matplotlib.pyplot as plt
 
@@ -197,7 +198,7 @@ def main():
     #print(y1_column_index,y2_column_index,y3_column_index)
     
     # number of epochs to execute
-    epochs = 20001
+    epochs = 2001
     for epoch in range(epochs):
         # step through sql database and train model
         for row in results:
@@ -289,7 +290,10 @@ def main():
             # plt.tight_layout()
             # 
             # plt.show()
-    sqlite3.close()
-    
+    conn.close()
+
+    # now save model
+    smm.save_model(model, "load-3-wmt.model")
+        
 if __name__ == "__main__":
     main()
