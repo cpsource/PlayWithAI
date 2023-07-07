@@ -185,7 +185,7 @@ def main():
     conn = sqlite3.connect("database.db")
     # Select all records from the table.
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM my_table")
+    cursor.execute("SELECT * FROM my_table WHERE y1 != 0 or y2 != 0 or y3 != 0")
     results = cursor.fetchall()
 
     # get column indexes

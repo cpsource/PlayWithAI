@@ -131,8 +131,10 @@ def do_ticker(conn, ticker, start_date, end_date):
 # Open the SQLite database
 conn = sqlite3.connect('database.db')
 
-start_date_str = "2023-06-23"
-end_date_str   = "2023-07-01"
+#start_date_str = "2023-06-23"
+#end_date_str   = "2023-07-01"
+start_date_str = "2023-07-01"
+end_date_str   = "2023-07-07"
 
 for ticker in stock_watch_list:
     print(ticker)
