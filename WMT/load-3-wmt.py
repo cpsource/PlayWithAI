@@ -84,8 +84,8 @@ class NeuralNetwork(nn.Module):
         self.l3 = nn.Linear(100,50)
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(50, 3)
-        self.l6 = nn.ReLU()
-#        self.l4 = nn.Softmax(dim=1)
+#        self.l6 = nn.ReLU()
+        self.l6 = nn.Softmax(dim=1)
 
 #        
 # this works too, but harder to see internals        
@@ -139,6 +139,8 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
 # Main Training Loop
 def train(model, X, y, loss_fn, optimizer):
 
+    #print(f"train: y = {y}")
+    
     # set the model to training mode
     model.train()
 
@@ -160,11 +162,11 @@ def train(model, X, y, loss_fn, optimizer):
     optimizer.step()
 
     # Take model out of training mode
-    model.eval()
+    #model.eval()
     
     #loss, current = loss.item()
     #print(f"loss: {loss}\n")
-
+ 
     return loss
 
 # tip of the hat to ChatGPT
@@ -179,6 +181,8 @@ def make_array_390(arr):
 # Main Loop
 #
 def main():
+    # track things
+    watch = 0
     # setup cuda
     print(f"Using {device} device")
 
@@ -223,19 +227,24 @@ def main():
             X = torch.tensor(X,dtype=torch.float32,device=device)
             #print(X.size())
             #exit(0)
-            
+
             # Send to model
             loss = train(model, X, y, loss_fn, optimizer)
 
-            #
-            # Test
-            #
-            # Take model out of training mode
-            model.eval()
-
-        # log every now and again
-        if not epoch % 100:
-            print(f"Epoch {epoch}, loss = {loss}\n-------------")
+            # log every now and again
+            watch += 1
+            if watch > 105:
+                watch = 0
+            if watch >= 100 and watch <= 105:
+                print(f"Epoch {epoch}, loss = {loss}\n-------------")
+                #
+                # Test
+                #
+                # Take model out of training mode
+                model.eval()
+                # poke around
+                y_hat = model(X)
+                print(f"loss = {loss}. y = {y}, y_hat  = {y_hat}")
         
             #
             #for idx in range(0,4):
@@ -293,7 +302,7 @@ def main():
     conn.close()
 
     # now save model
-    smm.save_model(model, "load-3-wmt.model")
+    #smm.save_model(model, "load-3-wmt.model")
         
 if __name__ == "__main__":
     main()
