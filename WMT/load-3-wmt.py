@@ -36,7 +36,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from torch import nn
 import sqlite3
-import save_my_model as smm
 
 import matplotlib.pyplot as plt
 
@@ -202,7 +201,7 @@ def main():
     #print(y1_column_index,y2_column_index,y3_column_index)
     
     # number of epochs to execute
-    epochs = 2001
+    epochs = 501
     for epoch in range(epochs):
         # step through sql database and train model
         for row in results:
@@ -232,19 +231,20 @@ def main():
             loss = train(model, X, y, loss_fn, optimizer)
 
             # log every now and again
-            watch += 1
-            if watch > 105:
-                watch = 0
-            if watch >= 100 and watch <= 105:
+            #watch += 1
+            #if watch > 105:
+            #    watch = 0
+                #if watch >= 100 and watch <= 105:
+            if not epoch % 100:
                 print(f"Epoch {epoch}, loss = {loss}\n-------------")
                 #
                 # Test
                 #
                 # Take model out of training mode
-                model.eval()
+                #model.eval()
                 # poke around
-                y_hat = model(X)
-                print(f"loss = {loss}. y = {y}, y_hat  = {y_hat}")
+                #y_hat = model(X)
+                #print(f"loss = {loss}. y = {y}, y_hat  = {y_hat}")
         
             #
             #for idx in range(0,4):
@@ -302,7 +302,14 @@ def main():
     conn.close()
 
     # now save model
-    #smm.save_model(model, "load-3-wmt.model")
+    torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss,
+            }, "load-3-wmt.model")
+    
+    #torch.save(model.state_dict(), "load-3-wmt.model")
         
 if __name__ == "__main__":
     main()

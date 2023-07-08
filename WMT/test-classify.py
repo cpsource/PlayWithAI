@@ -58,25 +58,24 @@ def make_array_390(arr):
         arr = np.append(arr, np.full(num_elements_to_append, last_value))
     return arr
 
-def restore_model(filename):
-  """Restores a PyTorch model from a file.
+# tip of the hat to ChatGPT
+def make_array_390(arr):
+    if arr.size < 390:
+        last_value = arr[-1]  # Get the last value of the array
+        num_elements_to_append = 390 - arr.size
+        arr = np.append(arr, np.full(num_elements_to_append, last_value))
+    return arr
 
-  Args:
-    filename: The filename to restore the model from.
-
-  Returns:
-    The restored PyTorch model.
-  """
-
-  # make an insteance of our network on device
-  model = NeuralNetwork().to(device)
-  # reload
-  model.load_state_dict(torch.load(filename))
-  # take out of training mode
-  model.eval()
-
-  return model
-
+def scale_tensor(tensor):
+    # Compute the maximum and minimum values of the tensor
+    min_val = np.min(tensor)
+    max_val = np.max(tensor)
+    
+    # Scale the tensor from -1 to +1
+    scaled_tensor = 2 * (tensor - min_val) / (max_val - min_val) - 1
+    
+    return scaled_tensor
+  
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
@@ -86,8 +85,8 @@ class NeuralNetwork(nn.Module):
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(50, 3)
         #self.l6 = nn.ReLU()
-        self.l6 = nn.Softmax(dim=1)
-
+        self.l6 = nn.Softmax(dim=0)
+ 
 #        
 # this works too, but harder to see internals        
 #        self.linear_relu_stack = nn.Sequential(
@@ -105,8 +104,6 @@ class NeuralNetwork(nn.Module):
         #x = self.flatten(x)
         #logits = self.linear_relu_stack(x)
 
-        #print(f"Start of Forward, x = {x}\n")
-
         #show_model("Start of Forward",self,x)
 
         pred_1 = self.l1(x)
@@ -114,41 +111,39 @@ class NeuralNetwork(nn.Module):
         pred_3 = self.l3(pred_2)
         pred_4 = self.l4(pred_3)
         pred_5 = self.l5(pred_4)
-        logits = pred_6 = self.l6(pred_5)
+        logits = pred_6 = self.l6(pred_5)        
 
-        #show_model("After nn.Linuear(3,1) (logits)",self,pred_3)
-                
-        #logits = self.l4(pred_3)
-
-        #show_model("After nn.ReLU (logits)", self,logits)
-
-        #if not show_model_off:
-            #print(f"End of Forward\n")
-
-        #return logits
         return logits
 
-# make an insteance of our network on device
-#model = NeuralNetwork().to(device)
 # restore model
-model = restore_model("load-3-wmt.model")
+
+# make an instance of our network on device
+#model = NeuralNetwork().to(device)
+#model = NeuralNetwork()
+# reload
+#model.load_state_dict(torch.load("load-3-wmt.model"))
+# take out of training mode
+#model.eval()
+
+model = NeuralNetwork()
+#optimizer = TheOptimizerClass(*args, **kwargs)
+
+checkpoint = torch.load("load-3-wmt.model")
+model.load_state_dict(checkpoint['model_state_dict'])
+# Create the optimizer - note lr is learning rate
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+epoch = checkpoint['epoch']
+loss = checkpoint['loss']
+model.eval()
+# - or -
+#model.train()
 
 #loss_fn = nn.CrossEntropyLoss()
 loss_fn = nn.MSELoss()
 
-# Create the optimizer
+# Create the optimizer - note lr is learning rate
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
-
-# Take model out of training mode
-#model.eval()
-
-# tip of the hat to ChatGPT
-def make_array_390(arr):
-    if arr.size < 390:
-        last_value = arr[-1]  # Get the last value of the array
-        num_elements_to_append = 390 - arr.size
-        arr = np.append(arr, np.full(num_elements_to_append, last_value))
-    return arr
 
 def main():
   """The main function."""
@@ -172,7 +167,7 @@ def main():
     id = row[0]
     X = pickle.loads(row[closes_column_index])
 
-    #print(X.shape)
+    # make sure we are 390 big
     X = make_array_390(X)
     
     N = len(X)
@@ -181,16 +176,22 @@ def main():
     #print(f"id = {id}, X1 = {X1}")
     #update_record(conn, id, "name", "John Doe")
 
-    # Print some info
+    # Collect some info
     min = np.min(X)
     max = np.max(X)
     spread = max-min
 
-    # ask model for prediction
-    x = torch.tensor(X, dtype=torch.float32, device=device)
-    y_pred = model(x)
+    # scale from -1 to +1
+    x = scale_tensor(X)
+
+    #print(f"x = {x}")
+    #exit(0)
     
-    print(f"ticker = {row[ticker_column_index]}, y_pred = {y_pred}, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
+    # ask model for prediction
+    x = torch.tensor(x, dtype=torch.float32, device=device)
+    y_pred = model(x)
+
+    print(f"ticker = {row[ticker_column_index]}, y_pred = {y_pred}:.1f, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
     
     #
     # Plot

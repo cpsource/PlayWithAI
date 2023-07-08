@@ -1,6 +1,5 @@
 import torch
 
-
 def save_model(model, filename):
   """Saves a PyTorch model to a file.
 
