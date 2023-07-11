@@ -54,7 +54,7 @@ stock_watch_list = ( "TJX",
 
 print("Loading from Yahoo")
 session = CachedLimiterSession(
-    limiter=Limiter(RequestRate(2, Duration.SECOND*5)),  # max 2 requests per 5 seconds
+    limiter=Limiter(RequestRate(2, Duration.SECOND*7)),  # max 2 requests per 7 seconds
     bucket_class=MemoryQueueBucket,
     backend=SQLiteCache("yfinance.cache"),)
 
@@ -63,12 +63,25 @@ def do_ticker(conn, ticker, start_date, end_date):
     if present.check_record(conn,start_date,ticker):
         print(f"Ticker {ticker} already loaded")
         return
-    msft = yf.Ticker(ticker, session=session)    
-    d = msft.history(start=start_date, end=end_date,interval='1m')
-    max = len(d.index)
-    if max == 0:
-        print(f"Ticker {ticker} no records loaded")
-        return
+    tries = 3
+    while True:
+        msft = yf.Ticker(ticker, session=session)    
+        d = msft.history(start=start_date, end=end_date,interval='1m')
+        tries -= 1
+        max = len(d.index)
+        if max == 0:
+            print(f"Ticker {ticker} no records loaded")
+            return
+        if max != 390 and tries >= 0:
+            print(f"Ticker {ticker} retry #{tries}, max = {max}")
+            #SQLiteCache.clear(session)
+            continue
+        break
+
+    # stop for now
+    #print(dir(SQLiteCache))
+    #exit(0)
+    #
     #print(f"max = {max}")
     #print(d.index[0])
     tim = d.index[0].strftime('%Y-%m-%d %H:%M:%S')
@@ -133,8 +146,10 @@ conn = sqlite3.connect('database.db')
 
 #start_date_str = "2023-06-23"
 #end_date_str   = "2023-07-01"
-start_date_str = "2023-07-01"
-end_date_str   = "2023-07-07"
+#start_date_str = "2023-07-01"
+#end_date_str   = "2023-07-07"
+start_date_str = "2023-07-07"
+end_date_str   = "2023-07-08"
 
 for ticker in stock_watch_list:
     print(ticker)

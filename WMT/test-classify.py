@@ -12,6 +12,8 @@ from torch import nn
 import os
 import sqlite3
 
+import input_string as iss
+
 device = (
     "cuda"
     if torch.cuda.is_available()
@@ -21,6 +23,28 @@ device = (
     )
 # runs slower with cuda
 device = "cpu"
+
+# in  result = [8.5443e-02, 7.8509e-07, 9.1456e-01]
+# out result = [0        ,  0         ,          1]
+def normalize_ys(result):
+    # show starting point
+    #print(result)
+    # start somewhere
+    max = result[0]
+    idx = 0
+    # find largest
+    for i in range(1,len(result)):
+        if result[i] > max:
+            max = result[i]
+            idx = i
+    # currect the list
+    for i in range(0,len(result)):
+        if i == idx:
+            result[i] = 1
+        else:
+            result[i] = 0
+    # done
+    return result
 
 def update_record(conn, id, field, value):
   """Updates the value of the given field for the record with the given ID.
@@ -154,68 +178,112 @@ def main():
   cursor = conn.cursor()
 
   cursor.execute("SELECT * FROM my_table where y1 = 0 and y2 = 0 and y3 = 0")
-  results = cursor.fetchall()
 
-  # get column index
-  column_name = 'closes'
-  closes_column_index = get_column_index(cursor,column_name)
-  ticker_name = 'ticker'
-  ticker_column_index = get_column_index(cursor,ticker_name)
-  
-  # Step through the results one at a time and update the name field.
-  for row in results:
-    id = row[0]
-    X = pickle.loads(row[closes_column_index])
-
-    # make sure we are 390 big
-    X = make_array_390(X)
-    
-    N = len(X)
-    n = np.arange(N)
-    
-    #print(f"id = {id}, X1 = {X1}")
-    #update_record(conn, id, "name", "John Doe")
-
-    # Collect some info
-    min = np.min(X)
-    max = np.max(X)
-    spread = max-min
-
-    # scale from -1 to +1
-    x = scale_tensor(X)
-
-    #print(f"x = {x}")
-    #exit(0)
-    
-    # ask model for prediction
-    x = torch.tensor(x, dtype=torch.float32, device=device)
-    y_pred = model(x)
-
-    print(f"ticker = {row[ticker_column_index]}, y_pred = {y_pred}:.1f, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
-    
-    #
-    # Plot
-    #
-    plt.figure(figsize = (12, 6))
-
-    if True:
-      #plt.subplot(122)
-      plt.plot(n, X, 'r')
-      plt.xlabel('Minuite')
-      plt.ylabel('Price')
-      plt.tight_layout()
+  # step through all records one at a time
+  while True:
+      row = cursor.fetchone()
+      if row is None:
+          break
+      # Do something with the row.
       
-      plt.show(block=False)
-      plt.pause(5)
-      plt.close()
+      # results = cursor.fetchall()
+      
+      # get column index
+      column_name = 'closes'
+      closes_column_index = get_column_index(cursor,column_name)
+      ticker_name = 'ticker'
+      ticker_column_index = get_column_index(cursor,ticker_name)
+      
+      # Step through the results one at a time and update the name field.
+      # for row in results:
+      id = row[0]
+      
+      X = pickle.loads(row[closes_column_index])
+      
+      # make sure we are 390 big
+      X = make_array_390(X)
+      
+      N = len(X)
+      n = np.arange(N)
+      
+      #print(f"id = {id}, X1 = {X1}")
+      #update_record(conn, id, "name", "John Doe")
+      
+      # Collect some info
+      min = np.min(X)
+      max = np.max(X)
+      spread = max-min
+      
+      # scale from -1 to +1
+      x = scale_tensor(X)
+      
+      #print(f"x = {x}")
+      #exit(0)
+      
+      # ask model for prediction
+      x = torch.tensor(x, dtype=torch.float32, device=device)
+      y_pred = model(x)
+      y_normal = normalize_ys(y_pred)
 
-    if 0:
-      # ask
-      result = get_ys.get_input(id)
-      # update record
-      cursor.execute("UPDATE my_table SET y1 = ?, y2 = ?, y3 = ? WHERE id = ?",
-                     result)
-      conn.commit()
+      # keep displaying until we decide what to do
+      new_vals = None
+      while True:
+          print(f"ticker = {row[ticker_column_index]}, y_normal = {y_normal}:.1f, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
+          
+          #
+          # Plot for 5 seconds
+          #
+          plt.figure(figsize = (12, 6))
+          #plt.subplot(122)
+          plt.plot(n, X, 'r')
+          plt.xlabel('Minuite')
+          plt.ylabel('Price')
+          plt.tight_layout()
+          
+          plt.show(block=False)
+          plt.pause(5)
+          plt.close()
+
+          # get command from operator
+          input_str = input("Cmd: 000, r - repeat, c - continue, u - update, q - quit ")
+          vals = iss.check_input_format(input_str)
+          if vals :
+              new_vals = vals
+              print(f"New Values Accepted: {new_vals}")
+              continue
+          if input_str == 'r':
+              continue
+          if input_str == 'c':
+              break
+          if input_str == 'u':
+              if new_vals:
+                  # use operator entered values
+                  new_vals = new_vals + (id,)
+                  # lets update the record
+                  cursor.execute("UPDATE my_table SET y1 = ?, y2 = ?, y3 = ? WHERE id = ?",
+                                 new_vals)
+                  conn.commit()
+                  print(f"Record Updated with {new_vals}")
+                  cursor.execute("SELECT * FROM my_table where y1 = 0 and y2 = 0 and y3 = 0")
+              else:
+                  # use machine picked values
+                  new_vals = (int(y_normal[0].item()),
+                              int(y_normal[1].item()),
+                              int(y_normal[2].item())
+                              ,id)
+                  # lets update the record
+                  cursor.execute("UPDATE my_table SET y1 = ?, y2 = ?, y3 = ? WHERE id = ?",
+                                 new_vals)
+                  conn.commit()
+                  print(f"Record Updated with {new_vals}")
+                  cursor.execute("SELECT * FROM my_table where y1 = 0 and y2 = 0 and y3 = 0")
+                  # continue
+              break
+          if input_str == 'q':
+              conn.close()
+              exit(0)
+              print("Unknown command, we'll continue")
+              break
 
   conn.close()
 
