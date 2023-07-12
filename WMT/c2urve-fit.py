@@ -2,16 +2,13 @@ import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
-def func(x, amplitude, frequency):
-  return -1 * amplitude * np.sin(2 * np.pi * frequency * x)
+def func(x, slope, offset):
+  return slope * x + offset
 
 if __name__ == "__main__":
 
-  amplitude = 1
-  frequency = 1
-  
-  xdata = np.linspace(0, 1, 100) # generate 50 samples evenly spaced between 0 and 2*pi
-  y = func(xdata, amplitude, frequency)
+  xdata = np.linspace(0, 3, 100)
+  y = func(xdata, 0.5, 1.0)
   rng = np.random.default_rng()
   y_noise = 0.2 * rng.normal(size=xdata.size)
   ydata = y_noise + y
