@@ -169,6 +169,21 @@ loss_fn = nn.MSELoss()
 # Create the optimizer - note lr is learning rate
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
 
+def ff(number, decimal_places=4):
+  """Formats a floating point number with a specified number of decimal places.
+
+  Args:
+    number: The floating point number to format.
+    decimal_places: The number of decimal places to use.
+
+  Returns:
+    A formatted string representation of the floating point number.
+  """
+
+  format_string = "%." + str(decimal_places) + "f"
+  formatted_number = format_string % number
+  return formatted_number
+
 def main():
   """The main function."""
 
@@ -228,6 +243,7 @@ def main():
       # keep displaying until we decide what to do
       new_vals = None
       while True:
+
           print(f"ticker = {row[ticker_column_index]}, y_normal = {y_normal}:.1f, min = {min:.2f}, max = {max:.2f}, spread = {spread:.2f}")
           
           #
@@ -245,11 +261,20 @@ def main():
           plt.close()
 
           # get command from operator
-          input_str = input("Cmd: 000, r - repeat, c - continue, u - update, q - quit ")
+          input_str = input("Cmd: 000, r - repeat, c - continue, u - update, w - write, q - quit ")
           vals = iss.check_input_format(input_str)
           if vals :
               new_vals = vals
               print(f"New Values Accepted: {new_vals}")
+              continue
+          if input_str == 'w':
+              # write out our 390 values on console for later testing
+              print("X = [")
+              x_len = int(len(X)/10)
+              print(type(x_len),x_len)
+              for idx in range(x_len):
+                  print(f"{ff(X[idx*10+0])},{ff(X[idx*10+1])},{ff(X[idx*10+2])},{ff(X[idx*10+3])},{ff(X[idx*10+4])},{ff(X[idx*10+5])},{ff(X[idx*10+6])},{ff(X[idx*10+7])},{ff(X[idx*10+8])},{ff(X[idx*10+9])},")
+              print("]")
               continue
           if input_str == 'r':
               continue
@@ -282,8 +307,8 @@ def main():
           if input_str == 'q':
               conn.close()
               exit(0)
-              print("Unknown command, we'll continue")
-              break
+          print("Unknown command, we'll continue")
+          break
 
   conn.close()
 

@@ -23,7 +23,7 @@ stock_watch_list = ( "TJX",
 	"AAPL",
         "MSFT",
         "AMZN",
-        "BRK.A",
+        "BRK-A",
         "JNJ",
         "UNH",
         "WMT",
@@ -148,8 +148,10 @@ conn = sqlite3.connect('database.db')
 #end_date_str   = "2023-07-01"
 #start_date_str = "2023-07-01"
 #end_date_str   = "2023-07-07"
-start_date_str = "2023-07-07"
-end_date_str   = "2023-07-08"
+#start_date_str = "2023-07-07"
+#end_date_str   = "2023-07-08"
+start_date_str = "2023-07-08"
+end_date_str   = "2023-07-12"
 
 for ticker in stock_watch_list:
     print(ticker)
