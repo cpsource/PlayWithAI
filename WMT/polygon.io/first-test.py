@@ -10,16 +10,17 @@ client = capikey.client
 
 print(client)
 
-ticker = "AAPL"
+ticker = "NVDA"
 
 if False:
     # List Aggregates (Bars)
     aggs = []
     for a in client.list_aggs(ticker=ticker, multiplier=1, timespan="minute", from_="2023-01-01", to="2023-06-13", limit=50000):
         aggs.append(a)
-    print(aggs)
+    for a in aggs:
+        print(f"{a}\n")
 
-if True:
+if False:
     # Get Last Trade
     trade = client.get_last_trade(ticker=ticker)
     print(trade)
@@ -37,6 +38,6 @@ if False:
 
 if False:
     # List Quotes
-    quotes = client.list_quotes(ticker=ticker, timestamp="2022-01-04")
+    quotes = client.list_quotes(ticker=ticker, timestamp="2023-01-04")
     for quote in quotes:
         print(quote)
