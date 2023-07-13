@@ -6,6 +6,7 @@ import capikey
 client = capikey.client
 
 #client = RESTClient()
+# Note: you can also export POLYGON_API_KEY= and create client as above
 
 print(client)
 
