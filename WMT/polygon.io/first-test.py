@@ -1,7 +1,11 @@
+import sys
+sys.path.insert(0, "./client-python")
 from polygon import RESTClient
 import capikey
 #client = RESTClient(api_key="<API_KEY>")
 client = capikey.client
+
+#client = RESTClient()
 
 print(client)
 
@@ -14,12 +18,12 @@ if False:
         aggs.append(a)
     print(aggs)
 
-if False:
+if True:
     # Get Last Trade
     trade = client.get_last_trade(ticker=ticker)
     print(trade)
 
-if True:
+if False:
     # List Trades
     trades = client.list_trades(ticker=ticker, timestamp="2023-01-04")
     for trade in trades:
