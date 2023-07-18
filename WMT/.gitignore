@@ -5,5 +5,3 @@ __pycache__
 ../mnist_from_scratch/__pycache__
 yfinance.cache
 *.pkl
-*.db
-*.model
