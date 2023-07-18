@@ -48,3 +48,50 @@ I use Evernote as a web clipper with a Chrome browser.
 submodules
 ----------
 Note: there are a number of config files. These are from submodules I've loaded into this top level directory.
+
+I'm running off Ubuntu 22.04 on an Alienware x14 pc with a large monitor attached.
+
+Notes on my pc
+--------------
+
+nvidia-smi
+
+<date>
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.54.06              Driver Version: 536.40       CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA GeForce RTX 3060 ...    On  | 00000000:01:00.0  On |                  N/A |
+| N/A   41C    P8              13W /  74W |    107MiB /  6144MiB |      0%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A        23      G   /Xwayland                                 N/A      |
++---------------------------------------------------------------------------------------+
+
+uname -a
+
+Linux AlienPC 5.15.90.1-microsoft-standard-WSL2 #1 SMP Fri Jan 27 02:56:13 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+
+lsb_release -a
+
+Distributor ID:	Ubuntu
+Description:	Ubuntu 22.04.2 LTS
+Release:	22.04
+Codename:	jammy
+
+nvcc --version
+
+Command 'nvcc' not found, but can be installed with:
+sudo apt install nvidia-cuda-toolkit
+
+Oops, I didn't bother to install the nvidia cuda tool kit.
+
