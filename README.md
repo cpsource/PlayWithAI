@@ -3,7 +3,22 @@ This is my playpen for mucking about with AI. This should be of no use to anyone
 
 To get all the submodules (recommended), do a
 
-git clone --recurse-submodules --remote-submodules https://github.com/cpsource/PlayWithAI.git
+  git clone --recurse-submodules --remote-submodules https://github.com/cpsource/PlayWithAI.git
+
+Sometimes, repositories are not submodules and you'll see a where.from. Just cat this
+and pull the module down
+
+To create a python virtual environment, do
+
+  python3 -m venv ~/venv
+
+To setup your python3, do a
+
+  python3 -m pip install -r requirements.txt
+
+To backup your python3, do a
+
+  python3 -m pip freeze > requirements.txt
 
 Misc Notes
 ----------
