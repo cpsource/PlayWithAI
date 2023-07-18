@@ -12,6 +12,12 @@ To create a python virtual environment, do
 
   python3 -m venv ~/venv
 
+At the start of every session, you need to 'connect' to the venv. You do this by
+
+  cd ~/
+  source ~/venv/bin/activate
+  cd Pl<tab>
+
 To setup your python3, do a
 
   python3 -m pip install -r requirements.txt
