@@ -1,0 +1,67 @@
+n polygon.io, what does conditions = [12,37] mean
+
+In Polygon.io, conditions = [12,37] means that the API will only return trades that have the following trade conditions:
+
+    12 - Form T, which indicates a trade that was executed outside of regular primary market hours and is reported as an extended hours trade.
+    37 - Odd Lot Trade, which distinguishes a trade resulting from a market center's execution in increments less than the defined round lot size.
+
+For example, if you were to query the Polygon.io Stocks API for the most recent trade for the ticker AAPL, and you set conditions = [12,37], the API would only return the most recent trade for AAPL that had one of the two trade conditions listed above.
+
+Here is a link to the Polygon.io documentation on trade conditions: https://polygon.io/glossary/us/stocks/trade-conditions
+
+I hope this helps! Let me know if you have any other questions.
+profile picture
+in polygon.io, what's the difference between a trade and a quote
+View other drafts
+
+In Polygon.io, a trade is a completed transaction between a buyer and a seller, while a quote is an offer to buy or sell a security at a specific price.
+
+Here is a table that summarizes the key differences between trades and quotes:
+Feature	Trade	Quote
+Definition	A completed transaction between a buyer and a seller	An offer to buy or sell a security at a specific price
+Timestamp	The time at which the trade was executed	The time at which the quote was submitted
+Price	The price at which the trade was executed	The price at which the quote is offered
+Volume	The number of shares that were traded	The number of shares that are being offered to buy or sell
+
+Here are some examples of how trades and quotes are used in Polygon.io:
+
+    A trader might use trades to track the price movement of a security and to identify potential trading opportunities.
+    A market maker might use quotes to provide liquidity to the market and to facilitate trades between buyers and sellers.
+    A hedge fund might use quotes to monitor the price movement of a security and to place orders to buy or sell the security.
+
+I hope this helps! Let me know if you have any other questions.
+
+In Polygon.io, exchange=4 means that the API will only return trades that were executed on the Nasdaq Stock Exchange. The Nasdaq Stock Exchange is one of the largest stock exchanges in the world, and it is home to many of the most well-known companies in the United States.
+
+The number 4 corresponds to the Nasdaq Stock Exchange in the Polygon.io API. Other exchanges that are supported by the API include:
+
+    1: NYSE
+    2: BATS
+    3: ARCA
+    5: ISE
+    6: CHX
+    7: PHLX
+    8: BOX
+    9: EDGX
+    10: IEX
+
+If you want to get trades from multiple exchanges, you can simply specify a list of exchanges in the exchange parameter. For example, to get trades from the Nasdaq Stock Exchange and the New York Stock Exchange, you would use the following query:
+
+https://api.polygon.io/v2/trades/?ticker=AAPL&exchange=[4,1]
+
+I hope this helps! Let me know if you have any other questions.
+
+n Polygon.io, the SIP timestamp is the timestamp of when the Securities Information Processor (SIP) received this trade from the exchange which produced it. The participant timestamp is the timestamp of when the trade was actually generated at the exchange.
+
+The SIP is a system that aggregates trade data from all of the major stock exchanges in the United States. When a trade is executed on an exchange, it is sent to the SIP, which then distributes the trade data to other market participants. The SIP timestamp is used to ensure that all market participants have access to the same trade data at the same time.
+
+The participant timestamp is the timestamp of when the trade was actually generated at the exchange. This timestamp is typically used by exchanges to track the order of trades and to resolve any disputes that may arise.
+
+In general, the SIP timestamp is more accurate than the participant timestamp. However, the participant timestamp may be more useful for some applications, such as resolving disputes.
+
+Here is a table that summarizes the key differences between SIP timestamps and participant timestamps:
+Feature	SIP timestamp	Participant timestamp
+Definition	The timestamp of when the SIP received this trade from the exchange which produced it	The timestamp of when the trade was actually generated at the exchange
+Accuracy	More accurate	Less accurate
+Usefulness	Used to ensure that all market participants have access to the same trade data at the same time	Used to track the order of trades and to resolve disputes
+

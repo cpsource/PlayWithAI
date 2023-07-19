@@ -25,11 +25,14 @@ if False:
     trade = client.get_last_trade(ticker=ticker)
     print(trade)
 
-if False:
+if True:
     # List Trades
-    trades = client.list_trades(ticker=ticker, timestamp="2023-01-04")
+    trades = client.list_trades(ticker=ticker, timestamp="2023-07-13")
     for trade in trades:
-        print(trade)
+        print(f"{trade}\n")
+        print(dir(trade))
+        print(type(trade))
+        exit(0)
 
 if False:
     # Get Last Quote
