@@ -1,4 +1,15 @@
 # see also  https://machinelearningmastery.com/a-gentle-introduction-to-the-jacobian/
+
+'''
+Sure. Here is an example of a Jacobian used in AI:
+
+Backpropagation: In neural network training, the Jacobian matrix is used to calculate the gradients of the loss function with respect to the network's parameters. This is done by recursively applying the chain rule, which essentially breaks down the gradient calculation into a series of partial derivatives. The Jacobian matrix is then used to update the network's parameters using a gradient descent algorithm.
+Here is a reference for the Jacobian used in AI:
+
+A Gentle Introduction to the Jacobian: https://machinelearningmastery.com/a-gentle-introduction-to-the-jacobian/
+This article provides a detailed explanation of the Jacobian matrix and its applications in machine learning. It also includes a section on backpropagation, which is one of the most common applications of the Jacobian in AI.
+'''
+
 import torch
 import torch.nn.functional as F
 from functools import partial
