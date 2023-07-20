@@ -15,8 +15,8 @@ To create a python virtual environment, do
 At the start of every session, you need to 'connect' to the venv. You do this by
 
   cd ~/
-  source ~/venv/bin/activate
   cd Pl<tab>
+  source setup-venv.sh
 
 To setup your python3, do a
 
@@ -25,6 +25,9 @@ To setup your python3, do a
 To backup your python3, do a
 
   python3 -m pip freeze > requirements.txt
+
+Installing TensorFlow (without miniconda (barf)) can be done with the link
+  https://tensorflow.org/install/pip
 
 Misc Notes
 ----------
