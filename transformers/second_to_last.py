@@ -216,7 +216,7 @@ model = NeuralNetwork().to(device)
 
 # Create the optimizer
 # we can also try lr=0.001, momentum=0.9
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-2)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3) # or -2 ???
 
 # Check if second-to-last.model exists and if so, load it. Set to eval mode
 # see also: https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         cnt += 1
     print(cnt)
 
-    if reloaded_flag:
+    if True and reloaded_flag:
         # lets test for a bit
         idx = cnt - 1
 
@@ -367,7 +367,7 @@ if __name__ == "__main__":
         indices = np.argsort(a)
         indices_reversed = indices[::-1]
         print(f"Powerballs in descending order: {indices_reversed}")
-        for i in (0,1,2,3):
+        for i in (0,1,2,3,4):
             print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f}")
 
         #m = nn.Softmax(dim=0)
@@ -382,18 +382,23 @@ if __name__ == "__main__":
     if reloaded_flag:
         # train for another 500 epochs
         model.train()
-        epochs = epoch + 501
+        old_epochs = epoch
+        epochs = epoch + 101
+        print(f"New Epochs: {epochs}")
     else:
         # number of epochs to execute
         epochs = 501
+        old_epochs = 0
 
     old_loss = 1.0
 
-    exit(0)
+    #exit(0)
 
-    for epoch in range(epochs):
+    first_save_flag = False
+    
+    for epoch in range(old_epochs,epochs):
         idx = 0
-        while idx < cnt:
+        while idx < cnt: # ??? Note: we leave the last one for test
             # show our handywork
             #print(X[0],Y[0])
             y_oh = one_hot_encode_array_39(np.array(Y[idx])).reshape(1,40)
@@ -419,11 +424,14 @@ if __name__ == "__main__":
         
         print(f"Epoch: {epoch} : {loss} : {status}")
         if not epoch % 100:
-            # now save model
-            print("Saving Model")
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss,
-            }, "second-to-last.model")
+            if not first_save_flag:
+                first_save_flag = True
+            else:
+                # now save model
+                print("Saving Model")
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': loss,
+                }, "second-to-last.model")
