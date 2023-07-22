@@ -16,8 +16,10 @@ def one_hot_encode(integer):
 
   """
 
-  integer -= 1
-  array = [0] * 39 
+  modulo = 26
+  if integer > modulo:
+      integer %= modulo
+  array = [0] * (modulo+1)
   array[integer] = 1
   return array
 
@@ -35,25 +37,24 @@ def convert_integer_array_to_numpy_array_of_float32(integer_array):
   return numpy_array
 
 if __name__ == "__main__":
-  integer = 3
+  integer = 1
   array = one_hot_encode(integer)
   print(array)
 
-  integer = 1
+  integer = 26
   array = convert_integer_array_to_numpy_array_of_float32(one_hot_encode(integer))
   print(array)
 
-  integer = 39
+  integer = 27
   array = one_hot_encode(integer)
   print(array)
   device = torch.device("cpu") # or cuda
   y = torch.tensor(array,dtype=torch.float32,device=device)
   print(y)
 
-  exit(0)
-  
-  integer_array = [1, 2, 3, 4, 5]
-  numpy_array = convert_integer_array_to_numpy_array_of_float32(integer_array)
-  print(numpy_array)
-  print(torch.tensor(integer_array,dtype=torch.float32))
+  if False:
+    integer_array = [1, 2, 3, 4, 5]
+    numpy_array = convert_integer_array_to_numpy_array_of_float32(integer_array)
+    print(numpy_array)
+    print(torch.tensor(integer_array,dtype=torch.float32))
 
