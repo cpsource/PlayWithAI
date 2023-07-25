@@ -1,8 +1,9 @@
 #!/home/pagec/venv/bin/python3
-import sys
 
-# Col #1
-my_col = 1
+# Col #2
+my_col = 2
+
+import sys
 
 # Remove the first entry (current working directory) from sys.path
 #sys.path = sys.path[1:]
@@ -103,7 +104,8 @@ model = NeuralNetwork().to(device)
 
 # Create the optimizer
 # we can also try lr=0.001, momentum=0.9
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9) # or -2 ???
+#optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-4) # or -2 ???
 #optimizer = torch.optim.Adam([var1, var2], lr=0.0001)
 
 #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
@@ -113,7 +115,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9) # or -2 ?
 
 reloaded_flag = False
 epoch = None
-model_name = "third-col1.model"
+model_name = f"third-col{my_col}.model"
 if os.path.exists(model_name):
     reloaded_flag = True
     print(f"Reloading pre-trained model {model_name}")
@@ -220,21 +222,24 @@ def read_file_line_by_line_readline(filename):
   return ts_array
 
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
+    global my_col
     idx = 30 # lets start here as it's easier to build our x
     while idx < cnt:
         # build x
         x = []
         for i in range(-29, 1):
             #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
-            x.append(ts_array[i+idx][0])
-        # now add in 1->4
-        for i in (1,2,3,4):
+            x.append(ts_array[i+idx][my_col-1])
+        # now add in 0->4 but skip my_col
+        for i in (0,1,2,3,4):
+            if (my_col-1) == i:
+                continue
             x.append(ts_array[idx][i])
         #print(f"len(x) = {len(x)}")
         #exit(0)
         
         # build y
-        y = [ts_array[idx][0]]
+        y = [ts_array[idx][(my_col-1)]]
         #print(f"len(y) = {len(y)}")
         #print(y)
 
@@ -285,7 +290,7 @@ if __name__ == "__main__":
         # train for another 100 epochs
         model.train()
         old_epochs = epoch
-        epochs = epoch + 101
+        epochs = epoch + 501
         print(f"New Epochs: {epochs}")
     else:
         # number of epochs to execute
@@ -297,7 +302,7 @@ if __name__ == "__main__":
 
     for epoch in range(old_epochs,epochs):
 
-        continue
+        #continue
 
         # do a single pass through ts_array
         loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
