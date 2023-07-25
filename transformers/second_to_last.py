@@ -372,15 +372,15 @@ if __name__ == "__main__":
         y_hat_detached = y_hat.detach()
         a = y_hat_detached_np = y_hat_detached.numpy()[0]
         # drop last couple
+        dropped = 0.0
         for tmpidx, tmpval in enumerate(a):
-            #print(f"tmpidx = {tmpidx}, tmpval= {tmpval}")
             if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
-                #print(f"tmpidx = {tmpidx}")
+                dropped += a[tmpidx]
                 a[tmpidx] = 0.0
         # recalculate softmax
-        a = softmax_np(a)
-        # make sure we add to one
-        sum = np.sum(a)
+        #a = softmax_np(a)
+        # make sure we add up to to one hundred percent
+        sum = np.sum(a) + dropped
 
         print(f"Sum: {sum}")
         if False:
@@ -392,8 +392,10 @@ if __name__ == "__main__":
         indices = np.argsort(a)
         indices_reversed = indices[::-1]
         print(f"Powerballs in descending order: {indices_reversed}")
+        total_probability = 0.0
         for i in (0,1,2,3,4,5,6,7,8,9):
-            print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f}")
+            total_probability += a[indices_reversed[i]]
+            print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
 
         #m = nn.Softmax(dim=0)
         #y_hat_sm = m(y_hat)
