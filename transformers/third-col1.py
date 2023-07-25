@@ -293,6 +293,9 @@ if __name__ == "__main__":
     first_save_flag = False
 
     for epoch in range(old_epochs,epochs):
+
+        continue
+
         # do a single pass through ts_array
         loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
 
@@ -326,3 +329,40 @@ if __name__ == "__main__":
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss,
         }, model_name)
+
+    # now lets test
+    model.eval()
+    # build x
+    x = []
+    idx = cnt - 1
+    for i in range(-29, 1):
+        #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
+        x.append(ts_array[i+idx][0])
+    # now add in 1->4
+    for i in (1,2,3,4):
+        x.append(ts_array[idx][i])
+        #print(f"len(x) = {len(x)}")
+        #exit(0)
+
+    #print(x)
+    #exit(0)
+    
+    # now we must one-hot x
+    max_value = 70*(4+30)
+    one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
+    for index, value in enumerate(x):
+        #print(index,value)
+        one_hot_encoded_x[index*70 + value] = 1.0
+    one_hot_encoded_x = one_hot_encoded_x.unsqueeze(0)
+    one_hot_encoded_x = one_hot_encoded_x.to(device)    
+    #print(f"len(x) = {len(one_hot_encoded_x)}")
+            
+    # build y
+    y = [ts_array[idx][0]]
+
+    # now see where we are
+    # Forward Pass
+    y_hat = model(one_hot_encoded_x)
+
+    print(y_hat)
+    
