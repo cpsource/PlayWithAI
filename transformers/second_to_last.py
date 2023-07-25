@@ -335,12 +335,13 @@ if __name__ == "__main__":
 
     # just do one training call
 
+    # how many elements ???
     cnt = 0
     for i in Y:
         cnt += 1
-    print(cnt)
-
-    if True and reloaded_flag:
+    print(f"Number of elements: {cnt}")
+    
+    if False and reloaded_flag:
         # lets test for a bit
         idx = cnt - 1
 
@@ -412,7 +413,11 @@ if __name__ == "__main__":
             
             # train
             loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
-
+            if idx == (cnt-1):
+                # train a bit more on the last one
+                tmp = (0,1,2)
+                for tmp1 in tmp:
+                    loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
             # onward
             idx += 1
 
