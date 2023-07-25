@@ -437,10 +437,9 @@ if __name__ == "__main__":
             
             # train
             loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
-            if idx == (cnt-1):
+            if idx >= (cnt-30):
                 # train a bit more on the last one
-                tmp = (0,1,2)
-                for tmp1 in tmp:
+                for tmp in (1,2,3):
                     loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
             # onward
             idx += 1
