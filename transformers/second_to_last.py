@@ -273,6 +273,20 @@ def train(model, X, y, loss_fn, optimizer):
  
     return loss
 
+def softmax_np(x):
+  """Calculates the softmax of a vector.
+
+  Args:
+    x: A NumPy array.
+
+  Returns:
+    A NumPy array of the same shape as x, with the softmax of each element.
+  """
+
+  exp_x = np.exp(x)
+  sum_exp_x = np.sum(exp_x)
+  return exp_x / sum_exp_x
+
 def softmax(tensor):
   """Computes the softmax function on a tensor.
 
@@ -341,7 +355,7 @@ if __name__ == "__main__":
         cnt += 1
     print(f"Number of elements: {cnt}")
     
-    if False and reloaded_flag:
+    if True and reloaded_flag:
         # lets test for a bit
         idx = cnt - 1
 
@@ -357,7 +371,17 @@ if __name__ == "__main__":
         y_hat = model(x_oh_t).cpu()
         y_hat_detached = y_hat.detach()
         a = y_hat_detached_np = y_hat_detached.numpy()[0]
+        # drop last couple
+        for tmpidx, tmpval in enumerate(a):
+            #print(f"tmpidx = {tmpidx}, tmpval= {tmpval}")
+            if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
+                #print(f"tmpidx = {tmpidx}")
+                a[tmpidx] = 0.0
+        # recalculate softmax
+        a = softmax_np(a)
+        # make sure we add to one
         sum = np.sum(a)
+
         print(f"Sum: {sum}")
         if False:
             # Enumerate
@@ -368,13 +392,13 @@ if __name__ == "__main__":
         indices = np.argsort(a)
         indices_reversed = indices[::-1]
         print(f"Powerballs in descending order: {indices_reversed}")
-        for i in (0,1,2,3,4):
+        for i in (0,1,2,3,4,5,6,7,8,9):
             print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f}")
 
         #m = nn.Softmax(dim=0)
         #y_hat_sm = m(y_hat)
 
-        print(f"(actual) Y[{idx}] = {Y[idx]}")
+        print(f"(actual) Y[{idx}] = {Y[idx][0]}")
         #print(f"y_oh  = {y_oh}")
         #print(f"y_hat_detached_np = {y_hat_detached_np}")
 
