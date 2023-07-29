@@ -2,6 +2,8 @@
 
 # Col #2 - of (1,2,3,4,5)
 my_col = 2
+test_mode = False
+skip_array = None
 
 import sys
 
@@ -39,7 +41,6 @@ import pandas as pd
 from torch import nn
 #import torch.optim as optim
 #from torch.optim.lr_scheduler import ReduceLROnPlateau
-
 #import sqlite3
 
 device = (
@@ -81,18 +82,20 @@ np.set_printoptions(threshold=sys.maxsize)
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-#        self.l0 = nn.Linear(5180, 5180) # each next layer will be 30% of previous layer
-        self.l1 = nn.Linear(4900, 1470) # each next layer will be 30% of previous layer
+        self.l0 = nn.Linear(4900, 4900) # each next layer will be 30% of previous layer
+        self.l0s = nn.Sigmoid()
+        self.l1 = nn.Linear(4900, 2100) # each next layer will be 30% of previous layer and multiple of 70
         self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(1470,140)
+        self.l3 = nn.Linear(2100,140)
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(140, 70)
 #        self.l6 = nn.ReLU()
         self.l6 = nn.Softmax(dim=1) # This will be column #1 result
 
     def forward(self, x):
- #       pred_0 = self.l0(x)
-        pred_1 = self.l1(x)
+        pred_0 = self.l0(x)
+        pred_0s = self.l0s(pred_0)
+        pred_1 = self.l1(pred_0s)
         pred_2 = self.l2(pred_1)
         pred_3 = self.l3(pred_2)
         pred_4 = self.l4(pred_3)
@@ -107,8 +110,8 @@ model = NeuralNetwork().to(device)
 # Create the optimizer
 # we can also try lr=0.001, momentum=0.9
 #optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
-#optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
-optimizer = torch.optim.Adam(model.parameters(),lr=1e-2)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-2) # or -2 ???
+#optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
 
 #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
 
@@ -228,6 +231,83 @@ def read_file_line_by_line_readline(filename):
   f.close()
   return ts_array
 
+'''
+  Test and display a prediction
+'''
+def test_and_display(model, cnt, ts_array, my_col):
+    model.eval()
+    if True:
+        # lets test against the last one
+        idx = cnt - 1
+
+        while True:
+            # build x of the form -70 -> -1
+            x = []
+            for i in range(-69, 1):
+                x.append(ts_array[i+idx][my_col-1])
+
+            # build y
+            y = [ts_array[idx][(my_col-1)]]
+
+            # now we must one-hot y
+            max_value = 70
+            one_hot_encoded_y = torch.zeros(max_value, dtype=torch.float32)
+            one_hot_encoded_y[y[0]] = 1.0
+            one_hot_encoded_y = one_hot_encoded_y.unsqueeze(0)
+            one_hot_encoded_y = one_hot_encoded_y.to(device)    
+
+            # now we must one-hot x
+            max_value = 70*70
+            one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
+            for index, value in enumerate(x):
+                #print(index,value)
+                one_hot_encoded_x[index*70 + value] = 1.0
+            one_hot_encoded_x = one_hot_encoded_x.unsqueeze(0)
+            one_hot_encoded_x = one_hot_encoded_x.to(device)    
+            #print(f"len(x) = {len(one_hot_encoded_x)}")
+
+            # call the model to make the prediction
+            
+            y_hat = model(one_hot_encoded_x).cpu()
+            y_hat_detached = y_hat.detach()
+            a = y_hat_detached_np = y_hat_detached.numpy()[0]
+
+            # drop last couple ??? - let's let the human do this for now
+            if False:
+                dropped = 0.0
+                for tmpidx, tmpval in enumerate(a):
+                    if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
+                        dropped += a[tmpidx]
+                        a[tmpidx] = 0.0
+                        # recalculate softmax
+                        #a = softmax_np(a)
+                        # make sure we add up to to one hundred percent
+                        sum = np.sum(a) + dropped
+                    print(f"Sum: {sum}")
+
+            if False:
+                # Enumerate
+                for index, element in enumerate(a):
+                    # Print the index and element
+                    print(f"Index: {index}, Element: {element}")
+
+            indices = np.argsort(a)
+            indices_reversed = indices[::-1]
+            print(f"Balls in descending order: {indices_reversed}")
+            total_probability = 0.0
+            j = i = 0
+            while True:
+                if is_in_skip_array(indices_reversed[i]):
+                    i += 1
+                    continue
+                total_probability += a[indices_reversed[i]]
+                print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
+                i += 1
+                j += 1
+                if j >= 10:
+                    break
+            break
+            
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global my_col
     idx = 70 # lets start here as it's easier to build our x
@@ -287,8 +367,70 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     # done
     return loss
 
-if __name__ == "__main__":
+def is_test(array):
+    '''
+    Return True if we have a command line switch -t or --test
+    '''
+    for item in array:
+        if '--test' == item or '-t' == item:
+            return True
+    return False
 
+def string_to_nparray(string):
+  """Converts a string of the form `[1,2,3,4]` to an nparray.
+
+  Args:
+    string: A string of the form `[1,2,3,4]`.
+
+  Returns:
+    An nparray.
+  """
+
+  array_data = []
+  for item in string[1:-1].split(","):
+    array_data.append(int(item))
+  return np.array(array_data)
+
+def is_s(array):
+    '''
+    Get skip array if present
+    '''
+    res = np.array([])
+    flag = False
+    for item in array:
+        if flag:
+            res = string_to_nparray(item)
+            return True, res
+        if '-s' == item or '--skip' == item:
+            flag = True
+            continue
+    return False, res
+
+def is_in_skip_array(n):
+    if skip_array is None:
+        return False
+    for i in skip_array:
+        if n == i:
+            return True
+    return False
+
+if __name__ == "__main__":
+    s_flag, skip_array = is_s(sys.argv)
+    if s_flag:
+        print(f"Using skip array {skip_array}")
+    
+    if is_test(sys.argv):
+        print('Running in test mode')
+        test_mode = True
+    else:
+        print('Running in training mode')
+
+    if False:
+        if not test_mode:
+            print("error - not in test mode")
+            exit(0)
+        exit(0)
+    
     # load in csv file
     ts_array = read_file_line_by_line_readline('pb.csv')
     # Note: ts_array elements are sorted small to large
@@ -316,7 +458,8 @@ if __name__ == "__main__":
 
     for epoch in range(old_epochs,epochs):
 
-        continue
+        if test_mode:
+            continue
     
         # do a single pass through ts_array
         loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
@@ -357,29 +500,4 @@ if __name__ == "__main__":
 
     # now lets test
     model.eval()
-    # build x
-    x = []
-    idx = cnt - 1
-    for i in range(-69, 1):
-        #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
-        x.append(ts_array[i+idx][1])
-    
-    # now we must one-hot x
-    max_value = 70*70
-    one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
-    for index, value in enumerate(x):
-        #print(index,value)
-        one_hot_encoded_x[index*70 + value] = 1.0
-    one_hot_encoded_x = one_hot_encoded_x.unsqueeze(0)
-    one_hot_encoded_x = one_hot_encoded_x.to(device)    
-    #print(f"len(x) = {len(one_hot_encoded_x)}")
-            
-    # build y
-    y = [ts_array[idx][0]]
-
-    # now see where we are
-    # Forward Pass
-    y_hat = model(one_hot_encoded_x)
-
-    print(y_hat)
-    
+    test_and_display(model, cnt, ts_array, my_col)
