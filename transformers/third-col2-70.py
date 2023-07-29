@@ -1,6 +1,6 @@
 #!/home/pagec/venv/bin/python3
 
-# Col #2
+# Col #2 - of (1,2,3,4,5)
 my_col = 2
 
 import sys
@@ -82,9 +82,9 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
 #        self.l0 = nn.Linear(5180, 5180) # each next layer will be 30% of previous layer
-        self.l1 = nn.Linear(5180, 1554) # each next layer will be 30% of previous layer
+        self.l1 = nn.Linear(4900, 1470) # each next layer will be 30% of previous layer
         self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(1554,140)
+        self.l3 = nn.Linear(1470,140)
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(140, 70)
 #        self.l6 = nn.ReLU()
@@ -107,8 +107,8 @@ model = NeuralNetwork().to(device)
 # Create the optimizer
 # we can also try lr=0.001, momentum=0.9
 #optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
-#optimizer = torch.optim.Adam([var1, var2], lr=0.0001)
+#optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
+optimizer = torch.optim.Adam(model.parameters(),lr=1e-2)
 
 #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
 
@@ -231,25 +231,32 @@ def read_file_line_by_line_readline(filename):
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global my_col
     idx = 70 # lets start here as it's easier to build our x
+    #idx = 1505 # lets start here as it's easier to build our x
     while idx < cnt:
-        # build x
+        # build x of the form -70 -> -1
         x = []
-        for i in range(-69, 1):
+        for i in range(-70, 0):
             #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
             x.append(ts_array[i+idx][my_col-1])
-        # now add in 0->4 but skip my_col
-        for i in (0,1,2,3,4):
-            if (my_col-1) == i:
-                continue
-            x.append(ts_array[idx][i])
         #print(f"len(x) = {len(x)}")
         #exit(0)
         
         # build y
         y = [ts_array[idx][(my_col-1)]]
-        #print(f"len(y) = {len(y)}")
-        #print(y)
 
+        if False:
+            # show our handywork
+            print(f"idx: {idx}")
+            print(f"len(x) = {len(x)}")
+            print(x)
+            print(f"len(y) = {len(y)}")
+            print(y)
+            print(ts_array)
+        
+        # debug
+        #idx += 1
+        #continue
+    
         # now we must one-hot y
         max_value = 70
         one_hot_encoded_y = torch.zeros(max_value, dtype=torch.float32)
@@ -259,7 +266,7 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
         #print(f"len(y) = {len(one_hot_encoded_y)}")
     
         # now we must one-hot x
-        max_value = 70*(4+70)
+        max_value = 70*70
         one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
         for index, value in enumerate(x):
             #print(index,value)
@@ -310,9 +317,12 @@ if __name__ == "__main__":
     for epoch in range(old_epochs,epochs):
 
         continue
-
+    
         # do a single pass through ts_array
         loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
+
+        # debug
+        #exit(0)
 
         if loss < old_loss:
             status = "better"
@@ -353,17 +363,9 @@ if __name__ == "__main__":
     for i in range(-69, 1):
         #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
         x.append(ts_array[i+idx][1])
-    # now add in 1->4
-    for i in (0,2,3,4):
-        x.append(ts_array[idx][i])
-        #print(f"len(x) = {len(x)}")
-        #exit(0)
-
-    #print(x)
-    #exit(0)
     
     # now we must one-hot x
-    max_value = 70*(4+70)
+    max_value = 70*70
     one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
     for index, value in enumerate(x):
         #print(index,value)
