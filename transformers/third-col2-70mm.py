@@ -146,7 +146,7 @@ set_my_col(sys.argv)
 print(f"Using column {my_col}")
 reloaded_flag = False
 epoch = 0
-model_name = f"third-col{my_col}-70mm.model"
+model_name = f"models/third-col{my_col}-70mm.model"
 if os.path.exists(model_name):
     reloaded_flag = True
     print(f"Reloading pre-trained model {model_name}")
@@ -469,14 +469,8 @@ if __name__ == "__main__":
     else:
         print('Running in training mode')
 
-    if False:
-        if not test_mode:
-            print("error - not in test mode")
-            exit(0)
-        exit(0)
-    
     # load in csv file
-    ts_array = read_file_line_by_line_readline('mm.csv')
+    ts_array = read_file_line_by_line_readline('data/mm.csv')
     # Note: ts_array elements are sorted small to large
     #print(ts_array)
 
@@ -487,6 +481,11 @@ if __name__ == "__main__":
     print(f"Cnt: {cnt}")
 
     if reloaded_flag:
+        # stop at 400 epochs
+        if epoch >= 400:
+            print("At 400 epoch limit, exiting")
+            exit(0)
+            
         # train for another 100 epochs
         model.train()
         old_epochs = epoch

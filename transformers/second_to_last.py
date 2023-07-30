@@ -1,3 +1,5 @@
+#!/home/pagec/venv/bin/python3
+
 import sys
 
 # Remove the first entry (current working directory) from sys.path
@@ -310,7 +312,7 @@ def softmax(tensor):
   return softmaxed_tensor
 
 if __name__ == "__main__":
-    ts_array = read_file_line_by_line_readline("pb.csv")
+    ts_array = read_file_line_by_line_readline("data/pb.csv")
     #print(max(ts_array))
     #print(type(ts_array))
     #print(ts_array)

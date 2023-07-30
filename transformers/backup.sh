@@ -1,3 +1,3 @@
 #!/bin/bash
-cp *.model /mnt/e/transformers/.
-cp *.csv /mnt/e/transformers/.
+cp models/*.model /mnt/e/transformers/.
+cp data/*.csv /mnt/e/transformers/.
