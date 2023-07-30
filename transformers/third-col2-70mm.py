@@ -537,7 +537,7 @@ if __name__ == "__main__":
 
     if reloaded_flag:
         # stop at 400 epochs
-        if epoch >= 400:
+        if not test_mode and epoch >= 400:
             print("At 400 epoch limit, exiting")
             exit(0)
             
