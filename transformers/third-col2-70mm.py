@@ -5,6 +5,8 @@ my_col = 2
 test_mode = False
 skip_array = None
 learning_rate = 1e-1
+model_name = ""
+reloaded_flag = False
 
 import sys
 
@@ -54,6 +56,9 @@ device = (
 # runs slower with cuda
 #device = "cpu"
 print(f"Device: {device}")
+
+# say which game we are playing
+our_game = "mm" # or pb, with mm being the default
 
 # set print options
 torch.set_printoptions(threshold=5000)
@@ -125,6 +130,25 @@ def set_lr(model,lr):
     print(f"setting optimizer with lr = {lr}")
     optimizer = torch.optim.SGD(model.parameters(), lr=lr) # or -2 ???
 
+def set_our_game(array):
+    '''
+    set our_game - must be one of pb or mm
+    '''
+    global our_game
+    flag = False
+    for item in array:
+        if flag:
+            if not (item == 'mm' or item == 'pb'):
+                print("--game must be either mm or pb")
+                exit(0)
+            our_game = item
+            break
+        if '-g' == item or '--game' == item:
+            flag = True
+            continue
+    print(f"Our Game is {our_game}")
+    return
+
 def set_my_col(array):
     global my_col
     res = 1 # default column in the set (1,2,3,4,5)
@@ -142,43 +166,56 @@ def set_my_col(array):
     my_col = res
     return
 
-set_my_col(sys.argv)
-print(f"Using column {my_col}")
-reloaded_flag = False
-epoch = 0
-model_name = f"models/third-col{my_col}-70mm.model"
-if os.path.exists(model_name):
-    reloaded_flag = True
-    print(f"Reloading pre-trained model {model_name}")
-    checkpoint = torch.load(model_name)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    epoch = checkpoint['epoch']
-    print(f"Reloaded epoch = {epoch}")
-    loss = checkpoint['loss']
-    #loss_fn = nn.CrossEntropyLoss()
-    try:
-        learning_rate = checkpoint['learning_rate']
-        print(f"Restored last learning_rate = {learning_rate}")
-    except Exception as e:
-        learning_rate = 0.001
-        print(f"Exception restoring learning_rate. Set to {learning_rate}")
-        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
-        #print(e)
-    else:
-        print("model to eval mode")
-        model.eval()
-        # - or -
-        #model.train()
+def attempt_reload():
+    '''
+    attempt to reload a model
+    '''
+    global model
+    global optimizer
+    global epoch
+    global loss
+    global model_name
+    global reloaded_flag
+    
+    set_my_col(sys.argv)
+    print(f"Using column {my_col}")
+    set_our_game(sys.argv)
 
-        #print(model.state_dict())
-        #print(model.get_seed())
-        #random_seed = model.state_dict()["random_seed"]
-        #print(f"random_seed = {random_seed}")
+    reloaded_flag = False
+    epoch = 0
+    model_name = f"models/third-col{my_col}-70{our_game}.model"
+    if os.path.exists(model_name):
+        reloaded_flag = True
+        print(f"Reloading pre-trained model {model_name}")
+        checkpoint = torch.load(model_name)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        epoch = checkpoint['epoch']
+        print(f"Reloaded epoch = {epoch}")
+        loss = checkpoint['loss']
+        #loss_fn = nn.CrossEntropyLoss()
+        try:
+            learning_rate = checkpoint['learning_rate']
+            print(f"Restored last learning_rate = {learning_rate}")
+        except Exception as e:
+            learning_rate = 0.001
+            print(f"Exception restoring learning_rate. Set to {learning_rate}")
+            optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
+            #print(e)
+        else:
+            print("model to eval mode")
+            model.eval()
+            # - or -
+            #model.train()
+
+            #print(model.state_dict())
+            #print(model.get_seed())
+            #random_seed = model.state_dict()["random_seed"]
+            #print(f"random_seed = {random_seed}")
+    return
 
 #loss_fn = nn.CrossEntropyLoss()
 loss_fn = nn.MSELoss()
-
         
 # Main Training Loop
 def train(model, X, y, loss_fn, optimizer):
@@ -457,9 +494,25 @@ def is_in_skip_array(n):
         if n == i:
             return True
     return False
+
+def give_help(array):
+    '''
+    Give help if asked. Exit afterwards.
+    '''
+    for item in array:
+        if '--help' == item or '-h' == item:
+            print("Usage:")
+            print("  --help - give this help message then exit")
+            print("  --col n - set column to n in the range of 1 to 5")
+            print("  --game mm/pb - set the game. Defaults to mm")
+            print("  --test - run in test mode (no training)")
+            print("  --skip '[0,...]' - skip these balls as they are impossible")
+            exit(0)
+    return
     
 if __name__ == "__main__":
-    #set_my_col(sys.argv)
+    give_help(sys.argv)
+    attempt_reload()
     s_flag, skip_array = is_s(sys.argv)
     if s_flag:
         print(f"Using skip array {skip_array}")
@@ -470,7 +523,9 @@ if __name__ == "__main__":
         print('Running in training mode')
 
     # load in csv file
-    ts_array = read_file_line_by_line_readline('data/mm.csv')
+    ifile = f"data/{our_game}.csv"
+    print(f"Using datafile {ifile}")
+    ts_array = read_file_line_by_line_readline(ifile)
     # Note: ts_array elements are sorted small to large
     #print(ts_array)
 
