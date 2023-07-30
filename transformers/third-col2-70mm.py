@@ -582,7 +582,7 @@ if __name__ == "__main__":
             if not first_save_flag:
                 first_save_flag = True
             else:
-                print("Saving Model")
+                print("Saving Model {model_name}")
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),

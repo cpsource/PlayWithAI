@@ -36,6 +36,17 @@ import pandas as pd
 from torch import nn
 #import sqlite3
 
+# say which game we are playing
+our_game = "pb" # or pb, with pb being the default
+# reloaded from disk
+reloaded_flag = False
+# test only ( no training )
+test_mode = False
+# what's our model name
+model_name = ""
+# what's our learning rate
+learning_rate = 1e-3
+
 device = (
     "cuda"
     if torch.cuda.is_available()
@@ -50,6 +61,55 @@ print(f"Device: {device}")
 # set print options
 torch.set_printoptions(threshold=5000)
 np.set_printoptions(threshold=sys.maxsize)
+
+# set new learning rate
+def set_lr(model,lr):
+    global optimizer
+    print(f"setting optimizer with lr = {lr}")
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr) # or -2 ???
+
+def is_test(array):
+    '''
+    Return True if we have a command line switch -t or --test
+    '''
+    for item in array:
+        if '--test' == item or '-t' == item:
+            return True
+    return False
+
+def give_help(array):
+    '''
+    Give help if asked. Exit afterwards.
+    '''
+    for item in array:
+        if '--help' == item or '-h' == item:
+            print("Usage:")
+            print("  --help - give this help message then exit")
+            #print("  --col n - set column to n in the range of 1 to 5")
+            print("  --game mm/pb - set the game. Defaults to mm")
+            print("  --test - run in test mode (no training)")
+            #print("  --skip '[0,...]' - skip these balls as they are impossible")
+            exit(0)
+    return
+
+def set_our_game(array):
+    '''
+    set our_game - must be one of pb or mm
+    '''
+    global our_game
+    flag = False
+    for item in array:
+        if flag:
+            if not (item == 'mm' or item == 'pb'):
+                print("--game must be either mm or pb")
+                exit(0)
+            our_game = item
+            break
+        if '-g' == item or '--game' == item:
+            flag = True
+            continue
+    print(f"Our Game is {our_game}")
+    return
 
 def one_hot_encode_array_with_pytorch_zz(array):
   """One-hot encodes an array with PyTorch.
@@ -168,17 +228,33 @@ def read_file_line_by_line_readline(filename):
 
   with open(filename, "r") as f:
     ts_array = []
+    line_number = 1
+
+    # skip some at front
+    if our_game == 'mm':
+        for i in range(1029):
+            f.readline()
+            line_number += 1
+            
     while True:
       line = f.readline()
       if line == "":
         break
       x = extract_second_to_last_column(line)
-
-      if x > 39:
-        print(f"Warning: {x} gt 39, adjusting")
-        x %= 39 
+      if our_game == 'mm':
+          if x > 25:
+              print(f"mm Warning at line {line_number}: {x} gt 25, adjusting")
+              x %= 26
+      else:
+          if x > 39:
+              print(f"pb Warning at line {line_number}: {x} gt 39, adjusting")
+              x %= 39 
         
       ts_array.append(x)
+
+      # onward
+      line_number += 1
+      
   f.close()
   return ts_array
 
@@ -218,26 +294,45 @@ model = NeuralNetwork().to(device)
 
 # Create the optimizer
 # we can also try lr=0.001, momentum=0.9
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3) # or -2 ???
+print(f"creating optimizer with lr = {learning_rate}")
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
 
+#
 # Check if second-to-last.model exists and if so, load it. Set to eval mode
 # see also: https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html
+#
+def attempt_reload():
+    '''
+    attempt to reload a model
+    '''
+    global model
+    global optimizer
+    global epoch
+    global loss
+    global model_name
+    global reloaded_flag
+    global learning_rate
 
-reloaded_flag = False
-epoch = None
-model_name = "second-to-last.model"
-if os.path.exists(model_name):
-    reloaded_flag = True
-    print("Reloading pre-trained model")
-    checkpoint = torch.load(model_name)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    epoch = checkpoint['epoch']
-    print(f"Reloaded epoch = {epoch}")
-    loss = checkpoint['loss']
-    model.eval()
-    # - or -
-    #model.train()
+    reloaded_flag = False
+    epoch = 0
+    model_name = f"models/second-to-last-{our_game}.model"
+    if os.path.exists(model_name):
+        reloaded_flag = True
+        print("Reloading pre-trained model")
+        checkpoint = torch.load(model_name)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        epoch = checkpoint['epoch']
+        print(f"Reloaded epoch = {epoch}")
+        loss = checkpoint['loss']
+        learning_rate = checkpoint['learning_rate']
+        print(f"Restored last learning_rate = {learning_rate}")
+        model.eval()
+        # - or -
+        #model.train()
+
+    # done
+    return
 
 #loss_fn = nn.CrossEntropyLoss()
 loss_fn = nn.MSELoss()
@@ -311,12 +406,88 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
+def test_and_display(model, cnt, X, Y, ts_array):
+
+    # lets test for a bit, get last row
+    idx = cnt - 1
+
+    y_oh = one_hot_encode_array_39(np.array(Y[idx])).reshape(1,40)
+    #print(y_oh)
+    x_oh = one_hot_encode_array_69(np.array(X[idx])).reshape(1,2100)
+    #print(x_oh)
+            
+    # convert to tensors
+    #y_oh_t = torch.tensor(y_oh, dtype=torch.float32, device=device)
+    x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
+
+    # run prepared data through the model
+    y_hat = model(x_oh_t).cpu()
+    y_hat_detached = y_hat.detach()
+    a = y_hat_detached_np = y_hat_detached.numpy()[0]
+
+    # drop last couple ???
+    if False:
+        dropped = 0.0
+        print(a)
+        print(Y)
+        for tmpidx, tmpval in enumerate(a):
+            if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
+                print(tmpidx)
+                print(f"Y[idx][0] = {Y[idx][0]}")
+                exit(0)
+                dropped += a[tmpidx]
+                a[tmpidx] = 0.0
+                # recalculate softmax
+                #a = softmax_np(a)
+                # make sure we add up to to one hundred percent
+                sum = np.sum(a) + dropped
+            
+                print(f"Sum: {sum}")
+    if False:
+        # Enumerate
+        for index, element in enumerate(a):
+            # Print the index and element
+            print(f"Index: {index}, Element: {element}")
+
+    indices = np.argsort(a)
+    indices_reversed = indices[::-1]
+    print(f"Balls in descending order: {indices_reversed}")
+    total_probability = 0.0
+    for i in (0,1,2,3,4,5,6,7,8,9):
+        total_probability += a[indices_reversed[i]]
+        print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
+
+    #m = nn.Softmax(dim=0)
+    #y_hat_sm = m(y_hat)
+
+    print(f"(actual) Y[{idx}] = {Y[idx][0]}")
+    #print(f"y_oh  = {y_oh}")
+    #print(f"y_hat_detached_np = {y_hat_detached_np}")
+
 if __name__ == "__main__":
-    ts_array = read_file_line_by_line_readline("data/pb.csv")
+    give_help(sys.argv)
+    set_our_game(sys.argv)
+    if is_test(sys.argv):
+        print('Running in test mode')
+        test_mode = True
+    else:
+        print('Running in training mode')
+
+    # attempt to reload pre-trained model from disk
+    attempt_reload()
+    
+    ifile = f"data/{our_game}.csv"
+    print(f"Using datafile {ifile}")
+    ts_array = read_file_line_by_line_readline(ifile)
     #print(max(ts_array))
     #print(type(ts_array))
     #print(ts_array)
     #print(len)
+
+    # stop at 400 epochs
+    if not test_mode and epoch >= 400:
+        print("At 400 epoch limit, exiting")
+        exit(0)
 
     #largest = find_largest_integer_in_array(ts_array)
     #print(f"Largest integer: {largest}")
@@ -325,7 +496,6 @@ if __name__ == "__main__":
     len = len(ts_array)
     training_set_size = 30
     idx = 0
-    z = 3
     X = []
     Y = []
     for i in range(0, len-training_set_size):
@@ -342,90 +512,42 @@ if __name__ == "__main__":
         # onward
         idx += 1
         
-        # stop and test here
-        #print(idx, x, y)
-        #print(break_up_integer_into_array(y))
-        #z -= 1
-        #if not z:
-        #    exit(0)
-
     # just do one training call
 
     # how many elements ???
     cnt = 0
     for i in Y:
         cnt += 1
-    print(f"Number of elements: {cnt}")
-    
-    if True and reloaded_flag:
-        # lets test for a bit
-        idx = cnt - 1
-
-        y_oh = one_hot_encode_array_39(np.array(Y[idx])).reshape(1,40)
-        #print(y_oh)
-        x_oh = one_hot_encode_array_69(np.array(X[idx])).reshape(1,2100)
-        #print(x_oh)
-            
-        # convert to tensors
-        #y_oh_t = torch.tensor(y_oh, dtype=torch.float32, device=device)
-        x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
-
-        y_hat = model(x_oh_t).cpu()
-        y_hat_detached = y_hat.detach()
-        a = y_hat_detached_np = y_hat_detached.numpy()[0]
-        # drop last couple
-        dropped = 0.0
-        for tmpidx, tmpval in enumerate(a):
-            if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
-                dropped += a[tmpidx]
-                a[tmpidx] = 0.0
-        # recalculate softmax
-        #a = softmax_np(a)
-        # make sure we add up to to one hundred percent
-        sum = np.sum(a) + dropped
-
-        print(f"Sum: {sum}")
-        if False:
-            # Enumerate
-            for index, element in enumerate(a):
-                # Print the index and element
-                print(f"Index: {index}, Element: {element}")
-
-        indices = np.argsort(a)
-        indices_reversed = indices[::-1]
-        print(f"Powerballs in descending order: {indices_reversed}")
-        total_probability = 0.0
-        for i in (0,1,2,3,4,5,6,7,8,9):
-            total_probability += a[indices_reversed[i]]
-            print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
-
-        #m = nn.Softmax(dim=0)
-        #y_hat_sm = m(y_hat)
-
-        print(f"(actual) Y[{idx}] = {Y[idx][0]}")
-        #print(f"y_oh  = {y_oh}")
-        #print(f"y_hat_detached_np = {y_hat_detached_np}")
-
-        exit(0)
+    print(f"Number of elements in Y: {cnt}")
 
     if reloaded_flag:
-        # train for another 500 epochs
+        # prepare to train for another 100 epochs
         model.train()
         old_epochs = epoch
         epochs = epoch + 101
         print(f"New Epochs: {epochs}")
     else:
         # number of epochs to execute
-        epochs = 501
+        epochs = 101
         old_epochs = 0
 
     old_loss = 1.0
 
-    #exit(0)
-
     first_save_flag = False
+
+    print(f"test_mode = {test_mode}, old_epochs = {old_epochs}, epochs = {epochs}")
+    #exit(0)
     
     for epoch in range(old_epochs,epochs):
+
+        # (this code is just stupid)
+        if test_mode:
+            continue
+
+        if epoch == 200:
+            learning_rate /= 10.0
+            set_lr(model,learning_rate)
+        
         idx = 0
         while idx < cnt: # ??? Note: we leave the last one for test
             # show our handywork
@@ -452,18 +574,25 @@ if __name__ == "__main__":
             status = "better"
         else:
             status = "worse"
+
+        print(f"epoch: {epoch}, loss = {loss}, delta = {loss-old_loss}, status = {status}")
+        #print(f"Epoch: {epoch} : {loss} : {status}")
         old_loss = loss
-        
-        print(f"Epoch: {epoch} : {loss} : {status}")
+
         if not epoch % 100:
             if not first_save_flag:
                 first_save_flag = True
             else:
                 # now save model
-                print("Saving Model")
+                print(f"Saving Model {model_name}")
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': loss,
-                }, "second-to-last.model")
+                    'learning_rate' : learning_rate,
+                }, model_name)
+
+    # now lets test
+    model.eval()
+    test_and_display(model, cnt, X, Y, ts_array)
