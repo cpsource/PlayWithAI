@@ -2,13 +2,13 @@
 #
 # First train
 #
-./third-col2-70mm.py --col 1 --game mm
-./third-col2-70mm.py --col 2 --game mm
-./third-col2-70mm.py --col 3 --game mm
-./third-col2-70mm.py --col 4 --game mm
-./third-col2-70mm.py --col 5 --game mm
+#./third-col2-70mm.py --col 1 --game mm
+#./third-col2-70mm.py --col 2 --game mm
+#./third-col2-70mm.py --col 3 --game mm
+#./third-col2-70mm.py --col 4 --game mm
+#./third-col2-70mm.py --col 5 --game mm
 # pb
-./second_to_last.py --game mm
+#./second_to_last.py --game mm
 #
 # Then test
 #
