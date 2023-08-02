@@ -4,3 +4,4 @@ zz*
 nanoGPT
 *.model
 models
+__pycache__

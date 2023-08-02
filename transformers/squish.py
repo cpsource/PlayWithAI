@@ -46,7 +46,60 @@ def one_hot_squish(array):
 
     # Return the list representation of the array.
     return np.array(list_array,dtype=np.float32)
+
+def read_file_line_by_line_readline(filename):
+  """Reads a file line by line using readline.
+
+  Args:
+    filename: The name of the file to read.
+
+  Returns:
+    A list of the lines in the file.
+  """
+
+  ts_array = []
+  with open(filename, "r") as f:
+    while True:
+      line = f.readline()
+      if line == "":
+        break
+      x = extract_numbers(line)
+      ts_array.append(x)
+  f.close()
+  return ts_array
+
+def extract_numbers(data):
+  """Extracts -7 -> -3 and sorts them
+
+  Args:
+    data: A string of data.
+
+  Returns:
+    A numpy array in sorted order.
+  """
+
+  columns = data.split(",")
+
+  if False:
+      print(int(columns[-7]))
+      print(int(columns[-6]))
+      print(int(columns[-5]))
+      print(int(columns[-4]))
+      print(int(columns[-3]))
     
+  tmp = np.array([int(columns[-7]),
+                     int(columns[-6]),
+                     int(columns[-5]),
+                     int(columns[-4]),
+                     int(columns[-3])])
+
+  #result = result[result[:,1].argsort()]
+  tmp = np.sort(tmp)
+  result = tmp
+  #for idx, value in enumerate(tmp):
+  #  result.append((idx+1,value))
+  return result.tolist()
+
 if __name__ == "__main__":
     if False:
         array = create_random_array(100, 1, 72)
