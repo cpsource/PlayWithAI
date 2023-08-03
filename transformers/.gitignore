@@ -5,3 +5,4 @@ nanoGPT
 *.model
 models
 __pycache__
+batch.log

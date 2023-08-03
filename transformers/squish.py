@@ -68,6 +68,8 @@ def read_file_line_by_line_readline(filename):
       line = f.readline()
       if line == "":
         break
+      if line[0] == '#':
+        continue
       x = extract_numbers(line)
       ts_array.append(x)
   f.close()

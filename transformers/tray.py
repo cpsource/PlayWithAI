@@ -371,9 +371,9 @@ if __name__ == "__main__":
     attempt_reload()
 
     if reloaded_flag:
-        # stop at 500 epochs
-        if not test_mode and epoch >= 500:
-            print("At 5000 epoch limit, exiting")
+        # stop at 800 epochs
+        if not test_mode and epoch >= 800:
+            print("At 800 epoch limit, exiting")
             exit(0)
             
         # train for another 100 epochs

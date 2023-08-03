@@ -240,6 +240,8 @@ def read_file_line_by_line_readline(filename):
       line = f.readline()
       if line == "":
         break
+      if line[0] == '#':
+          continue
       x = extract_second_to_last_column(line)
       if our_game == 'mm':
           if x > 25:
@@ -408,7 +410,7 @@ def softmax(tensor):
 
 def test_and_display(model, cnt, X, Y, ts_array):
 
-    # lets test for a bit, get last row
+    # lets test, get last row
     idx = cnt - 1
 
     y_oh = one_hot_encode_array_39(np.array(Y[idx])).reshape(1,40)
@@ -425,42 +427,15 @@ def test_and_display(model, cnt, X, Y, ts_array):
     y_hat_detached = y_hat.detach()
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
 
-    # drop last couple ???
-    if False:
-        dropped = 0.0
-        print(a)
-        print(Y)
-        for tmpidx, tmpval in enumerate(a):
-            if tmpidx == Y[idx][0] or tmpidx == Y[idx-1][0]:
-                print(tmpidx)
-                print(f"Y[idx][0] = {Y[idx][0]}")
-                exit(0)
-                dropped += a[tmpidx]
-                a[tmpidx] = 0.0
-                # recalculate softmax
-                #a = softmax_np(a)
-                # make sure we add up to to one hundred percent
-                sum = np.sum(a) + dropped
-            
-                print(f"Sum: {sum}")
-    if False:
-        # Enumerate
-        for index, element in enumerate(a):
-            # Print the index and element
-            print(f"Index: {index}, Element: {element}")
-
     indices = np.argsort(a)
     indices_reversed = indices[::-1]
-    print(f"Balls in descending order: {indices_reversed}")
+    print(f"Balls in descending probability: {indices_reversed}")
     total_probability = 0.0
     for i in (0,1,2,3,4,5,6,7,8,9):
         total_probability += a[indices_reversed[i]]
         print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
 
-    #m = nn.Softmax(dim=0)
-    #y_hat_sm = m(y_hat)
-
-    print(f"(actual) Y[{idx}] = {Y[idx][0]}")
+    #print(f"(actual) Y[{idx}] = {Y[idx][0]}")
     #print(f"y_oh  = {y_oh}")
     #print(f"y_hat_detached_np = {y_hat_detached_np}")
 

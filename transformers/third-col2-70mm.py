@@ -301,6 +301,8 @@ def read_file_line_by_line_readline(filename):
       line = f.readline()
       if line == "":
         break
+      if line[0] == '#':
+          continue
       x = extract_numbers(line)
       ts_array.append(x)
   f.close()
@@ -312,7 +314,7 @@ def read_file_line_by_line_readline(filename):
 def test_and_display(model, cnt, ts_array, my_col):
     model.eval()
     if True:
-        # lets test against the last one
+        # lets test against the last one (which the model has never seen)
         idx = cnt - 1
 
         while True:
@@ -387,7 +389,8 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global my_col
     idx = 71 # lets start here as it's easier to build our x
     #idx = 1505 # lets start here as it's easier to build our x
-    while idx < cnt:
+    # don't do the last one
+    while idx < (cnt-1):
         # build x of the form -71 -> -1
         x = []
         for i in range(-71, 0):
