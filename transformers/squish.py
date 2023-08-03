@@ -43,6 +43,7 @@ def one_hot_squish(array):
     for i in a:
         cnt += 1
 
+    # build an array of 0's
     tmp = [[0] * (cnt*14)]
 
     for idx, val in enumerate(a):
@@ -100,10 +101,10 @@ def extract_numbers(data):
 
   #result = result[result[:,1].argsort()]
   tmp = np.sort(tmp)
-  result = tmp
   #for idx, value in enumerate(tmp):
   #  result.append((idx+1,value))
-  return result.tolist()
+  #print(f"extract_numbers: {tmp}")
+  return tmp.tolist()
 
 if __name__ == "__main__":
     tst = [1,71]

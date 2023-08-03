@@ -198,9 +198,9 @@ def train(model, X, y, loss_fn, optimizer):
     return loss
 
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
-    idx = cnt-1 - 500
+    idx = cnt-2 - 500
 
-    while idx < cnt:
+    while idx < (cnt-1):
         #print(f"sp idx = {idx}")
         
         # build y
@@ -212,6 +212,9 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
         # build x
         tmp = []
         for i in range(idx-100, idx):
+            if i == idx:
+                print("can't consider y")
+                exit(0)
             if i >= cnt:
                 print(f"out of range, i = {i}, idx = {idx}")
                 exit(0)
@@ -244,6 +247,7 @@ def is_in_skip_array(n):
             return True
     return False
 
+# degroup
 cases = {
     0: "1->5",
     1: "6->10",
@@ -367,8 +371,8 @@ if __name__ == "__main__":
     attempt_reload()
 
     if reloaded_flag:
-        # stop at 5000 epochs
-        if not test_mode and epoch >= 5000:
+        # stop at 500 epochs
+        if not test_mode and epoch >= 500:
             print("At 5000 epoch limit, exiting")
             exit(0)
             
