@@ -1,6 +1,22 @@
 #!/usr/bin/bash
 
+# housekeeping - make sure directory 'models' exists
+# Get the directory name from the user
+
+directory_name="models"
+# Check if the directory exists
+if [[ ! -d "$directory_name" ]]; then
+  # The directory doesn't exist, so create it
+  echo "Creating directory '$directory_name'..."
+  mkdir "$directory_name"
+else
+  # The directory already exists, so do nothing
+  echo "Directory '$directory_name' already exists."
+fi
+
 game="mm"
+
+exit 0
 
 #
 # First train

@@ -2,6 +2,10 @@
 
 # tray.py - group numbers, predict next group
 
+# note on probability
+#  P(A and B) = P(A) * P(B)
+#  P(A or B) = P(A) + P(B) - P(A and B)
+
 test_mode = False
 skip_array = None
 learning_rate = 1e-1
@@ -199,7 +203,7 @@ def train(model, X, y, loss_fn, optimizer):
 
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     idx = cnt-2 - 500
-
+    
     while idx < (cnt-1):
         #print(f"sp idx = {idx}")
         
@@ -341,7 +345,17 @@ def test_and_display(model, cnt, ts_array):
     display(group=2,array=a)
     display(group=3,array=a)
     display(group=4,array=a)
-    
+
+def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
+    print(f"Saving Model {model_name}")
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+        'learning_rate' : learning_rate,
+    }, model_name)
+    return
 
 if __name__ == "__main__":
     # get command line info
@@ -391,6 +405,10 @@ if __name__ == "__main__":
 
     print(f"old_epochs = {old_epochs}, epochs = {epochs}")
 
+    loss_cnt = 0
+    max_loss_cnt = 35
+    minimum_delta = 1.5e-08
+    
     for epoch in range(old_epochs,epochs):
 
         if test_mode:
@@ -407,9 +425,18 @@ if __name__ == "__main__":
             status = "better"
         else:
             status = "worse"
+            loss_cnt += 1
+            if loss_cnt > max_loss_cnt:
+                print(f"Oops, loss_cnt = {loss_cnt} exceeds {max_loss_cnt}. No model save. We are exiting.")
+                exit(2)
 
-        print(f"epoch: {epoch}, loss = {loss}, delta = {loss-old_loss}, status = {status}")
-
+        delta = loss-old_loss
+        print(f"epoch: {epoch}, loss = {loss}, delta = {delta}, status = {status}")
+        if abs(delta) < minimum_delta:
+            print(f"Good, delta = {abs(delta)} less than minimum threshold of {minimum_delta}. We are exiting.")
+            if loss_cnt == 0:
+                save_model(old_epochs,model,optimizer,loss,learning_rate,model_name)
+            exit(1)
         old_loss = loss
 
         # save every 100
@@ -417,25 +444,12 @@ if __name__ == "__main__":
             if not first_save_flag:
                 first_save_flag = True
             else:
-                print(f"Saving Model {model_name}")
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': loss,
-                    'learning_rate' : learning_rate,
-                }, model_name)
+                loss_cnt = 0
+                save_model(epoch,model,optimizer,loss,learning_rate,model_name)
 
     if False:
         # now save model
-        print("Saving Model")
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
-            'learning_rate' : learning_rate,
-        }, model_name)
+        save_model(epoch,model,optimizer,loss,learning_rate,model_name)
     
     # do a single pass
     #loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
