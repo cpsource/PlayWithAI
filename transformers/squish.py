@@ -28,24 +28,28 @@ def squish(array):
     res = []
     for i in array:
         res.append(squish_array[i])
-    return np.array(res)
+    return res
 
 # first squish then one-hot.
 # The advantage here is that only 14 bits are
 # needed per number
 def one_hot_squish(array):
-    a = squish(array)
-    tmp = np.zeros((a.size, 13 + 1))
-    tmp[np.arange(a.size), a] = 1
-  
-    # Flatten the array.
-    flat_array = tmp.flatten()
+    a = []
+    for x in array:
+        a.append(x)
 
-    # Convert the flattened array to a list.
-    list_array = flat_array.tolist()
+    # get length of a
+    cnt = 0
+    for i in a:
+        cnt += 1
+
+    tmp = [[0] * (cnt*14)]
+
+    for idx, val in enumerate(a):
+        tmp[0][idx*14 + squish_array[val]] = 1
 
     # Return the list representation of the array.
-    return np.array(list_array,dtype=np.float32)
+    return tmp
 
 def read_file_line_by_line_readline(filename):
   """Reads a file line by line using readline.
@@ -56,7 +60,7 @@ def read_file_line_by_line_readline(filename):
   Returns:
     A list of the lines in the file.
   """
-
+  cnt = 0
   ts_array = []
   with open(filename, "r") as f:
     while True:
@@ -66,7 +70,8 @@ def read_file_line_by_line_readline(filename):
       x = extract_numbers(line)
       ts_array.append(x)
   f.close()
-  return ts_array
+  cnt = len(ts_array)
+  return cnt, ts_array
 
 def extract_numbers(data):
   """Extracts -7 -> -3 and sorts them
@@ -101,6 +106,11 @@ def extract_numbers(data):
   return result.tolist()
 
 if __name__ == "__main__":
+    tst = [1,71]
+    res = one_hot_squish(tst)
+    print(res)
+    exit(0)
+    
     if False:
         array = create_random_array(100, 1, 72)
         print(squish_array)

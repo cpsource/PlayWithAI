@@ -9,6 +9,7 @@ model_name = None
 reloaded_flag = False
 discount_array_flag = False
 discount_array = []
+ts_array = []
 
 import sys
 
@@ -65,6 +66,20 @@ print(f"Device: {device}")
 torch.set_printoptions(threshold=5000)
 np.set_printoptions(threshold=sys.maxsize)
 
+def softmax_np(x):
+  """Calculates the softmax of an np vector.
+
+  Args:
+    x: A NumPy array.
+
+  Returns:
+    A NumPy array of the same shape as x, with the softmax of each element.
+  """
+
+  exp_x = np.exp(x)
+  sum_exp_x = np.sum(exp_x)
+  return exp_x / sum_exp_x
+
 # create our neural network
 
 # we are going to sqish the data from 0 to 13. Each row has 5 elements.
@@ -85,7 +100,7 @@ class NeuralNetwork(nn.Module):
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(140, 70)
 #        self.l6 = nn.ReLU()
-        self.l6 = nn.Softmax(dim=1) # This will be column #1 result
+#        self.l6 = nn.Softmax(dim=1) # This will be column #1 result
 
     def forward(self, x):
         #pred_0 = self.l0(x)
@@ -94,8 +109,8 @@ class NeuralNetwork(nn.Module):
         pred_2 = self.l2(pred_1)
         pred_3 = self.l3(pred_2)
         pred_4 = self.l4(pred_3)
-        pred_5 = self.l5(pred_4)
-        logits = pred_6 = self.l6(pred_5)
+        logits = pred_5 = self.l5(pred_4)
+#        logits = pred_6 = self.l6(pred_5)
         #return logits
         return logits
 
@@ -146,7 +161,6 @@ def attempt_reload():
         model.eval()
     return
 
-        
 # Main Training Loop
 def train(model, X, y, loss_fn, optimizer):
 
@@ -183,10 +197,154 @@ def train(model, X, y, loss_fn, optimizer):
  
     return loss
 
+def single_pass(model, loss_fn, optimizer, cnt, ts_array):
+    idx = cnt-1 - 500
+
+    while idx < cnt:
+        #print(f"sp idx = {idx}")
+        
+        # build y
+        y = ts_array[idx]
+        y_hot = squ.one_hot_squish(y)
+        # cvt y to Y for torch
+        Y = torch.as_tensor(y_hot).float().cuda()
+
+        # build x
+        tmp = []
+        for i in range(idx-100, idx):
+            if i >= cnt:
+                print(f"out of range, i = {i}, idx = {idx}")
+                exit(0)
+            tmp.append(ts_array[i])
+        x = []
+        for i in tmp:
+            for j in i:
+                x.append(j)
+        x_hot = squ.one_hot_squish(x)
+        # cvt x to X for torch 
+        X = torch.as_tensor(x_hot).float().cuda()
+
+        # train
+        loss = train(model,
+                     X,
+                     Y,
+                     loss_fn,
+                     optimizer)
+
+        # onward
+        idx += 1
+    # done
+    return loss
+
+def is_in_skip_array(n):
+    if skip_array is None:
+        return False
+    for i in skip_array:
+        if n == i:
+            return True
+    return False
+
+cases = {
+    0: "1->5",
+    1: "6->10",
+    2: "11->15",
+    3: "16->20",
+    4: "21-25",
+    5: "26->30",
+    6: "31-35",
+    7: "36->40",
+    8: "41->45",
+    9: "46->50",
+    10: "51->55",
+    11: "56->60",
+    12: "61->65",
+    13: "66->71"
+    }
+
+def display(group,array):
+    idx = group
+    a = array
+    p1 = []
+
+    print(f"Column: {idx}")
+    
+    for i in (0,1,2,3,4,5,6,7,8,9,10,11,12,13):
+        p1.append(a[idx*14+i])
+
+    p1 = softmax_np(np.array(p1))
+    #print(p1)
+    #exit()
+    
+    indices          = np.argsort(p1)
+    indices_reversed = indices[::-1]
+
+    #print(indices)
+    #print(indices_reversed)
+    #exit(0)
+    
+    print(f"Ball groups in descending order: {indices_reversed}")
+    total_probability = 0.0
+    j = i = 0
+    while True:
+        #if is_in_skip_array(indices_reversed[i]):
+        #    i += 1
+        #    continue
+        total_probability += p1[indices_reversed[i]]
+        print(f"#{i+1} group : {indices_reversed[i]:2d}, {cases[indices_reversed[i]]}, probability {p1[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
+        i += 1
+        j += 1
+        if j >= 14:
+            break
+
+'''
+  Test and display a prediction
+'''
+def test_and_display(model, cnt, ts_array):
+    model.eval()
+    # lets test against the last one
+    idx = cnt - 1
+
+    # build y
+    y = ts_array[idx]
+    y_hot = squ.one_hot_squish(y)
+    # cvt y to Y for torch
+    Y = torch.as_tensor(y_hot).float().cuda()
+
+    # build x
+    tmp = []
+    for i in range(idx-100, idx):
+        if i >= cnt:
+            print(f"out of range, i = {i}, idx = {idx}")
+            exit(0)
+        tmp.append(ts_array[i])
+    x = []
+    for i in tmp:
+        for j in i:
+            x.append(j)
+    x_hot = squ.one_hot_squish(x)
+    # cvt x to X for torch 
+    X = torch.as_tensor(x_hot).float().cuda()
+
+    # Test
+    y_hat = model(X).cpu()
+    #print(y_hat)
+    y_hat_detached = y_hat.detach()
+    a = y_hat_detached_np = y_hat_detached.numpy()[0]
+
+    # display each of the five balls
+    display(group=0,array=a)
+    display(group=1,array=a)
+    display(group=2,array=a)
+    display(group=3,array=a)
+    display(group=4,array=a)
+    
+
 if __name__ == "__main__":
     # get command line info
     cmd.give_help(sys.argv)
     cmd.set_our_game(sys.argv)
+    test_mode = cmd.is_test(sys.argv)
+    
     #print(cmd.our_game)
     discount_array_flag, discount_array = cmd.is_discount(sys.argv)
     if discount_array_flag:
@@ -197,5 +355,88 @@ if __name__ == "__main__":
         print("You must specify a model name of the form -g mm/pb")
         exit(0)
 
+    # load in csv file
+    ifile = f"data/{cmd.our_game}.csv"
+    print(f"Using datafile {ifile}")
+    cnt, ts_array = squ.read_file_line_by_line_readline(ifile)
+    print(cnt)
+
+    idx = cnt - 1 # this is the last record in ts_array of the form [[],...[]]
+    
     # reload model if possible
     attempt_reload()
+
+    if reloaded_flag:
+        # stop at 5000 epochs
+        if not test_mode and epoch >= 5000:
+            print("At 5000 epoch limit, exiting")
+            exit(0)
+            
+        # train for another 100 epochs
+        model.train()
+        old_epochs = epoch
+        epochs = epoch + 101
+        print(f"New Epochs: {epochs}")
+    else:
+        # number of epochs to execute
+        old_epochs = 0
+        epochs = 101
+
+    old_loss = 1.0
+    first_save_flag = False
+
+    print(f"old_epochs = {old_epochs}, epochs = {epochs}")
+
+    for epoch in range(old_epochs,epochs):
+
+        if test_mode:
+            continue
+
+        if False and (epoch == 20 or epoch == 80):
+            learning_rate /= 10.0
+            set_lr(model,learning_rate)
+
+        # do a single pass through ts_array
+        loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
+
+        if loss < old_loss:
+            status = "better"
+        else:
+            status = "worse"
+
+        print(f"epoch: {epoch}, loss = {loss}, delta = {loss-old_loss}, status = {status}")
+
+        old_loss = loss
+
+        # save every 100
+        if not epoch % 100:
+            if not first_save_flag:
+                first_save_flag = True
+            else:
+                print(f"Saving Model {model_name}")
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': loss,
+                    'learning_rate' : learning_rate,
+                }, model_name)
+
+    if False:
+        # now save model
+        print("Saving Model")
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss,
+            'learning_rate' : learning_rate,
+        }, model_name)
+    
+    # do a single pass
+    #loss = single_pass(model, loss_fn, optimizer, cnt, ts_array)
+
+    # now lets test
+    model.eval()
+    test_and_display(model, cnt, ts_array)
+    

@@ -27,7 +27,16 @@ def is_discount(array):
         if '-d' == item or '--discount' == item:
             return True, np.arange(1.0, 0.0, -0.01)
     return False, np.array([])
-    
+
+def is_test(array):
+    '''
+    Return True if we have a command line switch -t or --test
+    '''
+    for item in array:
+        if '--test' == item or '-t' == item:
+            return True
+    return False
+
 def give_help(array):
     '''
     Give help if asked. Exit afterwards.
