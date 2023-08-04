@@ -385,7 +385,8 @@ def test_and_display(model, cnt, ts_array, my_col):
                     tray_probability = probs.column_probabilities[my_col-1][squish.squish_num(indices_reversed[i])]
                 else:
                     tray_probability = 0.0
-                print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}, tray = {tray_probability}")
+                tp = (tray_probability + a[indices_reversed[i]]) - (a[indices_reversed[i]]*tray_probability)
+                print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}, tray = {tray_probability}, tp = {tp}")
                 i += 1
                 j += 1
                 if j >= 10:
