@@ -7,6 +7,7 @@ skip_array = None
 learning_rate = 1e-1
 model_name = ""
 reloaded_flag = False
+probs_file_loaded = False
 
 import sys
 
@@ -176,6 +177,8 @@ def attempt_reload():
     global loss
     global model_name
     global reloaded_flag
+    global probs_file_loaded
+    global probs
     
     set_my_col(sys.argv)
     print(f"Using column {my_col}")
@@ -378,7 +381,11 @@ def test_and_display(model, cnt, ts_array, my_col):
                     i += 1
                     continue
                 total_probability += a[indices_reversed[i]]
-                print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
+                if probs_file_loaded:
+                    tray_probability = probs.column_probabilities[my_col-1][squish.squish_num(indices_reversed[i])]
+                else:
+                    tray_probability = 0.0
+                print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}, tray = {tray_probability}")
                 i += 1
                 j += 1
                 if j >= 10:
@@ -607,4 +614,22 @@ if __name__ == "__main__":
 
     # now lets test
     model.eval()
+
+    # consider tray.py output in our report
+    import squish
+    if our_game == 'mm':
+        if os.path.exists('probs_mm.py'):
+            import probs_mm as probs
+            print("Imported probs_mm")
+            probs_file_loaded = True
+    else:
+        if os.path.exists('probs_pb.py'):
+            import probs_pb as probs
+            print("Imported probs_mm")
+            probs_file_loaded = True
+        else:
+            import probs
+
     test_and_display(model, cnt, ts_array, my_col)
+
+    #print(my_col, probs.column_probabilities)

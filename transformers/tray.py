@@ -269,6 +269,12 @@ cases = {
     13: "66->71"
     }
 
+# after the fifth call to display
+# this guy will be
+# [[] [] [] [] []]
+
+column_probabilities = []
+
 def display(group,array):
     idx = group
     a = array
@@ -293,16 +299,21 @@ def display(group,array):
     print(f"Ball groups in descending order: {indices_reversed}")
     total_probability = 0.0
     j = i = 0
+    probability_array = []
     while True:
         #if is_in_skip_array(indices_reversed[i]):
         #    i += 1
         #    continue
         total_probability += p1[indices_reversed[i]]
+        probability_array.append(p1[indices_reversed[i]])
+        
         print(f"#{i+1} group : {indices_reversed[i]:2d}, {cases[indices_reversed[i]]}, probability {p1[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
         i += 1
         j += 1
         if j >= 14:
             break
+
+    column_probabilities.append(probability_array)
 
 '''
   Test and display a prediction
@@ -346,6 +357,8 @@ def test_and_display(model, cnt, ts_array):
     display(group=3,array=a)
     display(group=4,array=a)
 
+    #print(f"column_probabilities = {column_probabilities}")
+    
 def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
     print(f"Saving Model {model_name}")
     torch.save({
@@ -457,4 +470,11 @@ if __name__ == "__main__":
     # now lets test
     model.eval()
     test_and_display(model, cnt, ts_array)
+
+    # write out column_probabilities for third*.py
+    filename = f"probs_{cmd.our_game}.py"
+    print(f"Writing {filename}")
+    with open(filename, "w+") as f:
+        f.write("column_probabilities = %s\n" % column_probabilities)
+    f.close()
     

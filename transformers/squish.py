@@ -24,11 +24,16 @@ if False:
             array.append(random.randint(min_value, max_value))
             return array
 
+# for an array, return a squished array
 def squish(array):
     res = []
     for i in array:
         res.append(squish_array[i])
     return res
+
+# for an integer, return the group
+def squish_num(i):
+    return squish_array[i]
 
 # first squish then one-hot.
 # The advantage here is that only 14 bits are
