@@ -43,6 +43,8 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 from torch import nn
+import sums
+
 #import torch.optim as optim
 #from torch.optim.lr_scheduler import ReduceLROnPlateau
 #import sqlite3
@@ -315,6 +317,7 @@ def read_file_line_by_line_readline(filename):
   Test and display a prediction
 '''
 def test_and_display(model, cnt, ts_array, my_col):
+    global our_game
     model.eval()
     if True:
         # lets test against the last one (which the model has never seen)
@@ -376,6 +379,7 @@ def test_and_display(model, cnt, ts_array, my_col):
             print(f"Balls in descending order: {indices_reversed}")
             total_probability = 0.0
             j = i = 0
+            new_sums = []
             while True:
                 if is_in_skip_array(indices_reversed[i]):
                     i += 1
@@ -386,11 +390,13 @@ def test_and_display(model, cnt, ts_array, my_col):
                 else:
                     tray_probability = 0.0
                 tp = (tray_probability + a[indices_reversed[i]]) - (a[indices_reversed[i]]*tray_probability)
+                new_sums.append([indices_reversed[i], a[indices_reversed[i]], tray_probability])
                 print(f"#{i+1} pick : {indices_reversed[i]:2d}, probability {a[indices_reversed[i]]:.5f} , total {total_probability:.5f}, tray = {tray_probability}, tp = {tp}")
                 i += 1
                 j += 1
                 if j >= 10:
                     break
+            sums.replace_col(our_game,my_col,new_sums)
             break
             
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
@@ -533,6 +539,9 @@ if __name__ == "__main__":
     else:
         print('Running in training mode')
 
+    # load sums
+    sums.init_sums(our_game)
+    
     # load in csv file
     ifile = f"data/{our_game}.csv"
     print(f"Using datafile {ifile}")
