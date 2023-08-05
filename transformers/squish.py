@@ -57,6 +57,28 @@ def one_hot_squish(array):
     # Return the list representation of the array.
     return tmp
 
+# one-hot.
+# The advantage here is that only 14 bits are
+# needed per number
+def one_hot_no_squish(array):
+    a = []
+    for x in array:
+        a.append(x)
+
+    # get length of a
+    cnt = 0
+    for i in a:
+        cnt += 1
+
+    # build an array of 0's
+    tmp = [[0] * (cnt*71)]
+
+    for idx, val in enumerate(a):
+        tmp[0][idx*71 + val] = 1
+
+    # Return the list representation of the array.
+    return tmp
+
 def read_file_line_by_line_readline(filename):
   """Reads a file line by line using readline.
 
