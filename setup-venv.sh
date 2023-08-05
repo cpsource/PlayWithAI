@@ -11,3 +11,5 @@ export LD_LIBRARY_PATH=$CUDNN_PATH/lib:$LD_LIBRARY_PATH
 # display some things here and there
 ./nvcc.sh
 ./verify-tensor-flow.sh
+# time
+TZ='America/New_York'; export TZ
