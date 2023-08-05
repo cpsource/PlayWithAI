@@ -6,6 +6,6 @@ nanoGPT
 *.model
 models
 __pycache__
-batch.log
+batch*.log
 probs_mm.py
 probs_pb.py
