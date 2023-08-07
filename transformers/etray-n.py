@@ -15,7 +15,7 @@ reloaded_flag = False
 discount_array_flag = False
 discount_array = []
 ts_array = []
-our_depth = [100, 34, 12, 1]
+our_depth = None
 model = None
 optimizer = None
 loss_fn = None
@@ -168,11 +168,9 @@ def attempt_reload():
     global loss
     global model_name
     global reloaded_flag
-    global our_depth
     
     reloaded_flag = False
     epoch = 0
-    model_name = f"models/etray-{our_depth[0]}-{cmd.our_game}.model"
     if os.path.exists(model_name):
         reloaded_flag = True
         print(f"Reloading pre-trained model {model_name}")
@@ -228,9 +226,9 @@ def train(model, X, y, loss_fn, optimizer):
 #@torch.compile
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global our_depth
-    idx = cnt-1 - 500
+    idx = cnt-2 - 500
     
-    while idx < cnt:
+    while idx < (cnt-1):
         #print(f"sp idx = {idx}")
         
         # build y
@@ -283,11 +281,11 @@ def is_in_skip_array(n):
 
 column_probabilities = []
 
-def display(idx,a):
+def display(idx,a,y):
     p1 = []
 
     print(f"Column: {idx+1}")
-
+    
     for i in range(0,71):
         p1.append(a[idx*71+i])
     #print(f"p1 before softmax {p1}")
@@ -312,8 +310,10 @@ def display(idx,a):
         #    continue
         total_probability += p1[indices_reversed[i]]
         probability_array.append(p1[indices_reversed[i]])
+
+        distance = abs(y[idx] - indices_reversed[i])
         
-        print(f"#{i+1} Ball : {indices_reversed[i]:2d}, probability {p1[indices_reversed[i]]:.5f} , total {total_probability:.5f}")
+        print(f"#{i+1} Ball : {indices_reversed[i]:2d}, probability {p1[indices_reversed[i]]:.5f} , distance = {distance}, total {total_probability:.5f}")
         i += 1
         j += 1
         if j >= 71:
@@ -358,11 +358,11 @@ def test_and_display(model, cnt, ts_array):
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
 
     # display each of the five balls
-    display(0,a)
-    display(1,a)
-    display(2,a)
-    display(3,a)
-    display(4,a)
+    display(0,a,y)
+    display(1,a,y)
+    display(2,a,y)
+    display(3,a,y)
+    display(4,a,y)
 
     #print(f"column_probabilities = {column_probabilities}")
     
@@ -385,7 +385,7 @@ if __name__ == "__main__":
         print(f"len(y) = {len(y)},y = {y}")
         yhat = squ.one_hot_no_squish(y)[0]
         print(f"len(yhat) = {len(yhat)}, yhat before display {yhat}")
-        display(4,yhat)
+        display(4,yhat,y)
         exit(0)
         
     # get command line info
@@ -395,6 +395,12 @@ if __name__ == "__main__":
     initialize_model()
     test_mode = cmd.is_test(sys.argv)
 
+    model_name = f"models/etray-{our_depth[0]}-{cmd.our_game}.model"
+    if cmd.is_zero(sys.argv):
+        if os.path.exists(model_name):
+            print("Removing model {model_name}")
+            os.unlink(model_name)
+            
     #print(cmd.our_game)
     discount_array_flag, discount_array = cmd.is_discount(sys.argv)
     if discount_array_flag:

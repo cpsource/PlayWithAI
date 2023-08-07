@@ -59,6 +59,12 @@ def is_test(array):
             return True
     return False
 
+def is_zero(array):
+    for item in array:
+        if '--zero' == item or '-z' == item:
+            return True
+    return False
+    
 def give_help(array):
     '''
     Give help if asked. Exit afterwards.
@@ -73,5 +79,6 @@ def give_help(array):
             print("  --test - run in test mode (no training)")
             print("  --discount - use discount_array for one-hot")            
             #print("  --skip '[0,...]' - skip these balls as they are impossible")
+            print("  --zero - unlink the model befor starting")
             exit(0)
     return
