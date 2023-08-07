@@ -9,7 +9,7 @@
 
 test_mode = False
 skip_array = None
-learning_rate = 1e-1
+learning_rate = 1e-2
 model_name = None
 reloaded_flag = False
 discount_array_flag = False
@@ -136,8 +136,8 @@ def initialize_model():
 
     # make an instance of our network on device
     k1 = 71*5*our_depth[0]
-    k2 = 71*5*our_depth[1]
-    k3 = 71*5*our_depth[2]
+    k2 = 71*4*our_depth[1]
+    k3 = 71*3*our_depth[2]
     k4 = 71*5*our_depth[3]
 
     print(f"Initializing Model with {k1} {k2} {k3} {k4}")
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     model_name = f"models/etray-{our_depth[0]}-{cmd.our_game}.model"
     if cmd.is_zero(sys.argv):
         if os.path.exists(model_name):
-            print("Removing model {model_name}")
+            print(f"Removing model {model_name}")
             os.unlink(model_name)
             
     #print(cmd.our_game)
