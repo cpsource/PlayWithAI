@@ -317,7 +317,7 @@ def test_and_display(model, cnt, ts_array):
 
     # build x
     tmp = []
-    for i in range(idx-100, idx):
+    for i in range(idx-120, idx):
         if i >= cnt:
             print(f"out of range, i = {i}, idx = {idx}")
             exit(0)
