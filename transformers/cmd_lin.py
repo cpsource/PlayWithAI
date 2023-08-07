@@ -1,5 +1,27 @@
 import numpy as np
+import math
 
+# set a depth
+our_depth = [100, 34, 12, 1]
+def set_our_depth(array):
+    global our_depth
+    depth_array = [0]*5
+    flag = False
+    for item in array:
+        if flag:
+            our_depth[0] = int(item)
+            break
+        if '-d' == item or '--depth' == item:
+            flag = True
+            continue
+    if flag:
+        # calculate rest of our_depth
+        our_depth[1] = int(math.ceil(our_depth[0]/3))
+        our_depth[2] = int(math.ceil(our_depth[1]/3))
+        our_depth[3] = 1
+    print(f"Our Depth is {our_depth}")
+    return our_depth
+    
 # say which game we are playing
 our_game = "mm" # or pb, with mm being the default
 
@@ -47,6 +69,7 @@ def give_help(array):
             print("  --help - give this help message then exit")
             #print("  --col n - set column to n in the range of 1 to 5")
             print("  --game mm/pb - set the game. Defaults to mm")
+            print("  --depth N - set depth. Defaults to 100")
             print("  --test - run in test mode (no training)")
             print("  --discount - use discount_array for one-hot")            
             #print("  --skip '[0,...]' - skip these balls as they are impossible")
