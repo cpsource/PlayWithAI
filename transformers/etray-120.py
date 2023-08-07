@@ -1,6 +1,7 @@
 #!/home/pagec/venv/bin/python3
 
 # etray.py - no grouping of numbers, predict next group
+# etray-120.py - run 120 deep instead of 100 in etray.py
 
 # note on probability
 #  P(A and B) = P(A) * P(B)
@@ -8,7 +9,7 @@
 
 test_mode = False
 skip_array = None
-learning_rate = 1e-2
+learning_rate = 1e-1
 model_name = None
 reloaded_flag = False
 discount_array_flag = False
@@ -94,17 +95,19 @@ def softmax_np(x):
 # so it's 71 x 5 x 100 in (35,500)
 # and 71 x 5 out          (   355)
 #
+# so it's 71 x 5 x 120 in (42,600)
+# and 71 x 5 out          (   355)
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         #self.l0 = nn.Linear(5041, 5041) # each next layer will be 30% of previous layer
         #self.l0s = nn.Sigmoid()
-        self.l1 = nn.Linear(35500, 10650) # each next layer will be 30% of previous layer and multiple of 70
+        self.l1 = nn.Linear(42600, 12780) # 71*180
         self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(10650,3195) # 71*45
+        self.l3 = nn.Linear(12780,3834) # 71*54
         self.l4 = nn.Sigmoid()
-        self.l5 = nn.Linear(3195, 355)  # 5x71
+        self.l5 = nn.Linear(3834, 355)  # 5x71
 #        self.l6 = nn.ReLU()
 #        self.l6 = nn.Softmax(dim=1) # This will be column #1 result
 
@@ -150,7 +153,7 @@ def attempt_reload():
     
     reloaded_flag = False
     epoch = 0
-    model_name = f"models/etray-{cmd.our_game}.model"
+    model_name = f"models/etray-120-{cmd.our_game}.model"
     if os.path.exists(model_name):
         reloaded_flag = True
         print(f"Reloading pre-trained model {model_name}")
@@ -203,6 +206,7 @@ def train(model, X, y, loss_fn, optimizer):
  
     return loss
 
+#@torch.compile
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     idx = cnt-1 - 500
     
@@ -217,7 +221,7 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
 
         # build x
         tmp = []
-        for i in range(idx-100, idx):
+        for i in range(idx-120, idx):
             if i == idx:
                 print("can't consider y")
                 exit(0)
