@@ -19,6 +19,13 @@ def set_our_depth(array):
         our_depth[1] = int(math.ceil(our_depth[0]/3))
         our_depth[2] = int(math.ceil(our_depth[1]/3))
         our_depth[3] = 1
+
+    if False:
+        our_depth[0] = 100
+        our_depth[1] = 3
+        our_depth[2] = 2
+        our_depth[3] = 1
+    
     print(f"Our Depth is {our_depth}")
     return our_depth
     

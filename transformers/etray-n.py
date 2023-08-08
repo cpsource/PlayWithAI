@@ -9,7 +9,7 @@
 
 test_mode = False
 skip_array = None
-learning_rate = 1e-2
+learning_rate = 1e-4
 model_name = None
 reloaded_flag = False
 discount_array_flag = False
@@ -76,6 +76,52 @@ print(f"Device: {device}")
 torch.set_printoptions(threshold=5000)
 np.set_printoptions(threshold=sys.maxsize)
 
+def my_loss_fn(y_in,y_hat_in):
+    m = y_in * y_hat_in
+    return torch.mean((y_in - m)**2)
+
+    error = 0
+    
+    for idx in range(0,5):
+
+        # build a working array per ball
+        y = []
+        y_hat = []
+        for i in range(0,71):
+            y.append(y_in[idx*71+i])            # what we calculated
+            y_hat.append(y_hat_in[idx*71+i])    # what it should be
+
+        # get the largest ball in each array
+        y_ball = 0
+        largest_y_tmp = y[y_ball]
+
+        y_hat_ball = 0
+        largest_y_hat_tmp = y_hat[y_hat_ball]
+        for i in range(0,71):
+            if y[i] > largest_y_tmp:
+                y_ball = i
+                largest_y_tmp = y[i]
+            if y_hat[i] > largest_y_hat_tmp:
+                y_hat_ball = i
+                largest_y_hat_tmp = y_hat[i]
+            
+        # y_ball is what we calculated
+        # y_hat_ball is what it should be
+
+        #for i in range(0,71):
+        #    print(f"y[{i}] = {y[i]}")
+        #for i in range(0,71):
+        #    print(f"y_hat[{i}] = {y_hat[i]}")
+
+        #print(f"y_hat_ball = {y_hat_ball}, y_ball = {y_ball}")
+        #exit(0)
+        # rms calculation - sort of
+        error += abs(y_ball - y_hat_ball)
+
+    # done
+    print(error) #return torch.tensor(error)
+    return torch.mean((y_in - m)**2)
+
 def softmax_np(x):
   """Calculates the softmax of an np vector.
 
@@ -134,7 +180,7 @@ def initialize_model():
     global model
     global optimizer
     global loss_fn
-
+    
     # make an instance of our network on device
     k1 = 71*5*our_depth[0]
     k2 = 71*4*our_depth[1]
@@ -149,14 +195,14 @@ def initialize_model():
     # we can also try lr=0.001, momentum=0.9
     #optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
     print(f"creating optimizer with lr = {learning_rate}")
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
-    #optimizer = torch.optim.Adam(model.parameters(),lr=1e-2)
+    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
+    optimizer = torch.optim.Adam(model.parameters(),lr=1e-2)
 
     #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
 
     #loss_fn = nn.CrossEntropyLoss()
     loss_fn = nn.MSELoss()
-
+        
 # Check if {model_name} exists and if so, load it. Set to eval mode
 # see also: https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html
 def attempt_reload():
@@ -200,10 +246,15 @@ def train(model, X, y, loss_fn, optimizer):
     y_hat = model(X)
 
     # Calculate loss
-    loss = loss_fn(y, y_hat)
+    if True:
+        loss = my_loss(y,y_hat)
+    else:
+        #print(f"y_hat = {y_hat}")
+        #print(f"y = {y}")
+        loss = my_loss_fn(y[0], y_hat[0])
 
-    #print(f"y_hat = {y_hat}\nloss = {loss}\n")
-
+    #print(f"loss = {loss}")
+    
     # Zero gradients from last time
     optimizer.zero_grad()
 
@@ -228,20 +279,25 @@ def train(model, X, y, loss_fn, optimizer):
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global our_depth
     global our_back
-    idx = cnt-2 - our_back
+    idx_x = cnt-2 - our_back
+    idx_y = idx_x + our_depth[0]
+
+    #print(f"our_depth = {our_depth}, our_back = {our_back}")
+    #print(f"idx_x = {idx_x}, idx_y = {idx_y}")
+    #exit(0)
     
-    while idx < (cnt-1):
+    while idx_y <= (cnt-2):
         #print(f"sp idx = {idx}")
         
         # build y
-        y = ts_array[idx]
+        y = ts_array[idx_y]
         y_hot = squ.one_hot_no_squish(y)
         # cvt y to Y for torch
         Y = torch.as_tensor(y_hot).float().cuda()
 
         # build x
         tmp = []
-        for i in range(idx-our_depth[0], idx):
+        for i in range(idx_x, idx_y):
             if i == idx:
                 print("can't consider y")
                 exit(0)
@@ -265,7 +321,8 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
                      optimizer)
 
         # onward
-        idx += 1
+        idx_x += 1
+        idx_y += 1
     # done
     return loss
 
@@ -283,7 +340,7 @@ def is_in_skip_array(n):
 
 column_probabilities = []
 
-def display(idx,a,y):
+def display(idx,a):
     p1 = []
 
     print(f"Column: {idx+1}")
@@ -313,7 +370,7 @@ def display(idx,a,y):
         total_probability += p1[indices_reversed[i]]
         probability_array.append(p1[indices_reversed[i]])
 
-        distance = abs(y[idx] - indices_reversed[i])
+        distance = 0
         
         print(f"#{i+1} Ball : {indices_reversed[i]:2d}, probability {p1[indices_reversed[i]]:.5f} , distance = {distance}, total {total_probability:.5f}")
         i += 1
@@ -329,18 +386,18 @@ def display(idx,a,y):
 def test_and_display(model, cnt, ts_array):
     global our_depth
     model.eval()
-    # lets test against the last one
+    # lets test including the last one
     idx = cnt - 1
 
     # build y
-    y = ts_array[idx]
-    y_hot = squ.one_hot_no_squish(y)
+    #y = ts_array[idx]
+    #y_hot = squ.one_hot_no_squish(y)
     # cvt y to Y for torch
-    Y = torch.as_tensor(y_hot).float().cuda()
+    #Y = torch.as_tensor(y_hot).float().cuda()
 
     # build x
     tmp = []
-    for i in range(idx-our_depth[0], idx):
+    for i in range(idx-our_depth[0]+1, cnt):
         if i >= cnt:
             print(f"out of range, i = {i}, idx = {idx}")
             exit(0)
@@ -360,11 +417,11 @@ def test_and_display(model, cnt, ts_array):
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
 
     # display each of the five balls
-    display(0,a,y)
-    display(1,a,y)
-    display(2,a,y)
-    display(3,a,y)
-    display(4,a,y)
+    display(0,a)
+    display(1,a)
+    display(2,a)
+    display(3,a)
+    display(4,a)
 
     #print(f"column_probabilities = {column_probabilities}")
     
