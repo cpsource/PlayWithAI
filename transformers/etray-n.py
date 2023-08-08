@@ -19,7 +19,8 @@ our_depth = None
 model = None
 optimizer = None
 loss_fn = None
-
+# how far back should we go looking at plays
+our_back = 600
 import sys
 
 # Remove the first entry (current working directory) from sys.path
@@ -226,7 +227,8 @@ def train(model, X, y, loss_fn, optimizer):
 #@torch.compile
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global our_depth
-    idx = cnt-2 - 500
+    global our_back
+    idx = cnt-2 - our_back
     
     while idx < (cnt-1):
         #print(f"sp idx = {idx}")

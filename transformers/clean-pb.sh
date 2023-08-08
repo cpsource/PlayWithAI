@@ -14,3 +14,5 @@ rm -f models/third-col3-70pb.model
 rm -f models/third-col4-70pb.model
 rm -f models/third-col5-70pb.model
 rm -f models/tray-pb.model
+rm -f models/etray-pb.model
+rm -f models/etray-*-pb.model
