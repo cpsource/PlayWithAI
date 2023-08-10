@@ -1,5 +1,26 @@
 import numpy as np
 import math
+import sys
+
+def set_my_col(array):
+    global my_col
+    flag = False
+    for item in array:
+        if flag:
+            my_col = int(item)
+            if my_col > 6 or my_col < 1:
+                print("--col must be between 1 and 6")
+                exit(0)
+            break
+        if '-c' == item or '--col' == item:
+            flag = True
+            continue
+    if not flag:
+        print(f"My Column set to default {my_col}")
+        my_col = 1
+    else:
+        print(f"My Column set to {my_col}")
+    return
 
 # set a depth
 our_depth = [100, 34, 12, 1]
@@ -28,7 +49,33 @@ def set_our_depth(array):
     
     print(f"Our Depth is {our_depth}")
     return our_depth
+
+# get winning numbers
+def get_winning_numbers(array):
+    winning_numbers = None
+    res = []
+    flag = False
+    for item in array:
+        if flag:
+            winning_numbers = item
+            break
+        if '-w' == item or '--win' == item:
+            flag = True
+            continue
+    # now convert string to an int array
+    if winning_numbers is not None:
+        for number in winning_numbers[1:-1].split(","):
+            res.append(int(number))
+
+    if flag:
+        if len(res) != 6:
+           print(f"Error: invalid winning numbers array {res}")
+           res = []
+        else:
+            print(f"Our Winning Numbers are {res}")
+    return res
     
+
 # say which game we are playing
 our_game = "mm" # or pb, with mm being the default
 
@@ -80,12 +127,17 @@ def give_help(array):
         if '--help' == item or '-h' == item:
             print("Usage:")
             print("  --help - give this help message then exit")
-            #print("  --col n - set column to n in the range of 1 to 5")
+            print("  --col n - set column to n in the range of 1 to 6")
             print("  --game mm/pb - set the game. Defaults to mm")
             print("  --depth N - set depth. Defaults to 100")
             print("  --test - run in test mode (no training)")
             print("  --discount - use discount_array for one-hot")            
             #print("  --skip '[0,...]' - skip these balls as they are impossible")
             print("  --zero - unlink the model befor starting")
+            print("  --win [a,b,c,d,e] - return winning numbers array")
             exit(0)
     return
+
+if __name__ == "__main__":
+
+    n = get_winning_numbers(sys.argv)

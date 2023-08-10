@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from torch import nn
 #import sqlite3
+import cmd_lin as cmd
 
 # say which game we are playing
 our_game = "pb" # or pb, with pb being the default
@@ -46,6 +47,18 @@ test_mode = False
 model_name = ""
 # what's our learning rate
 learning_rate = 1e-3
+# winning numbers
+winning_numbers = []
+# total worse count during training
+total_worse_count = 0
+# our model
+model = None
+# optimizer
+optimizer = None
+# loss function
+loss_fn = None
+# column 1 to 6, 6 being the pb
+my_col = 6
 
 device = (
     "cuda"
@@ -67,49 +80,6 @@ def set_lr(model,lr):
     global optimizer
     print(f"setting optimizer with lr = {lr}")
     optimizer = torch.optim.SGD(model.parameters(), lr=lr) # or -2 ???
-
-def is_test(array):
-    '''
-    Return True if we have a command line switch -t or --test
-    '''
-    for item in array:
-        if '--test' == item or '-t' == item:
-            return True
-    return False
-
-def give_help(array):
-    '''
-    Give help if asked. Exit afterwards.
-    '''
-    for item in array:
-        if '--help' == item or '-h' == item:
-            print("Usage:")
-            print("  --help - give this help message then exit")
-            #print("  --col n - set column to n in the range of 1 to 5")
-            print("  --game mm/pb - set the game. Defaults to mm")
-            print("  --test - run in test mode (no training)")
-            #print("  --skip '[0,...]' - skip these balls as they are impossible")
-            exit(0)
-    return
-
-def set_our_game(array):
-    '''
-    set our_game - must be one of pb or mm
-    '''
-    global our_game
-    flag = False
-    for item in array:
-        if flag:
-            if not (item == 'mm' or item == 'pb'):
-                print("--game must be either mm or pb")
-                exit(0)
-            our_game = item
-            break
-        if '-g' == item or '--game' == item:
-            flag = True
-            continue
-    print(f"Our Game is {our_game}")
-    return
 
 def one_hot_encode_array_with_pytorch_zz(array):
   """One-hot encodes an array with PyTorch.
@@ -202,20 +172,6 @@ def extract_second_to_last_column(data):
   second_to_last_column = columns[-2]
   return int(second_to_last_column)
 
-def append_integer_to_array(array, integer):
-  """Appends an integer to an array.
-
-  Args:
-    array: An array.
-    integer: An integer.
-
-  Returns:
-    The array with the integer appended.
-  """
-
-  array.append(integer)
-  return array
-
 def read_file_line_by_line_readline(filename):
   """Reads a file line by line using readline.
 
@@ -271,13 +227,13 @@ def scale_tensor(tensor):
     return scaled_tensor
 
 class NeuralNetwork(nn.Module):
-    def __init__(self):
+    def __init__(self, k1, k2, k3, k4):
         super().__init__()
-        self.l1 = nn.Linear(2100, 630)
+        self.l1 = nn.Linear(k1, k2)
         self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(630,189)
+        self.l3 = nn.Linear(k2,k3)
         self.l4 = nn.Sigmoid()
-        self.l5 = nn.Linear(189, 40)
+        self.l5 = nn.Linear(k3, k4)
 #        self.l6 = nn.ReLU()
         self.l6 = nn.Softmax(dim=1)
 
@@ -291,13 +247,34 @@ class NeuralNetwork(nn.Module):
         #return logits
         return logits
 
-# make an instance of our network on device
-model = NeuralNetwork().to(device)
 
-# Create the optimizer
-# we can also try lr=0.001, momentum=0.9
-print(f"creating optimizer with lr = {learning_rate}")
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
+def initialize_model():
+    global our_depth
+    global model
+    global optimizer
+    global loss_fn
+    
+    # make an instance of our network on device
+    k1 = 2100
+    k2 = 630
+    k3 = 189
+    k4 = 40
+
+    print(f"Initializing Model with {k1} {k2} {k3} {k4}")
+    
+    model = NeuralNetwork(k1,k2,k3,k4).to(device)
+
+    # Create the optimizer
+    # we can also try lr=0.001, momentum=0.9
+    #optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
+    print(f"creating optimizer with lr = {learning_rate}")
+    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
+    optimizer = torch.optim.Adam(model.parameters(),lr=learning_rate)
+
+    #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
+
+    #loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.MSELoss()
 
 #
 # Check if second-to-last.model exists and if so, load it. Set to eval mode
@@ -317,7 +294,7 @@ def attempt_reload():
 
     reloaded_flag = False
     epoch = 0
-    model_name = f"models/second-to-last-{our_game}.model"
+    
     if os.path.exists(model_name):
         reloaded_flag = True
         print("Reloading pre-trained model")
@@ -335,9 +312,6 @@ def attempt_reload():
 
     # done
     return
-
-#loss_fn = nn.CrossEntropyLoss()
-loss_fn = nn.MSELoss()
 
 # Main Training Loop
 def train(model, X, y, loss_fn, optimizer):
@@ -408,7 +382,7 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
-def test_and_display(model, cnt, X, Y, ts_array):
+def test_and_display(model, cnt, X, Y, ts_array, total_worse_count):
 
     # lets test, get last row
     idx = cnt - 1
@@ -439,18 +413,45 @@ def test_and_display(model, cnt, X, Y, ts_array):
     #print(f"y_oh  = {y_oh}")
     #print(f"y_hat_detached_np = {y_hat_detached_np}")
 
+    # stats
+    print(f"Total Worse Count: {total_worse_count}")
+    
+def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
+    print(f"Saving Model {model_name}")
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+        'learning_rate' : learning_rate,
+    }, model_name)
+    return
+    
 if __name__ == "__main__":
-    give_help(sys.argv)
-    set_our_game(sys.argv)
-    if is_test(sys.argv):
+    cmd.give_help(sys.argv)
+    cmd.set_my_col(sys.argv)
+    winning_numbers = cmd.get_winning_numbers(sys.argv)
+    cmd.set_our_game(sys.argv)
+    if cmd.is_test(sys.argv):
         print('Running in test mode')
         test_mode = True
     else:
         print('Running in training mode')
 
+    # initialize our model
+    initialize_model()
+
+    model_name = f"models/second-to-last-{our_game}.model"
+    print(f"Model Name: {model_name}")
+    if cmd.is_zero(sys.argv):
+        if os.path.exists(model_name):
+            print(f"Removing model {model_name}")
+            os.unlink(model_name)
+
     # attempt to reload pre-trained model from disk
     attempt_reload()
-    
+
+    # read in correct data file
     ifile = f"data/{our_game}.csv"
     print(f"Using datafile {ifile}")
     ts_array = read_file_line_by_line_readline(ifile)
@@ -548,26 +549,22 @@ if __name__ == "__main__":
         if loss < old_loss:
             status = "better"
         else:
+            total_worse_count += 1
             status = "worse"
 
         print(f"epoch: {epoch}, loss = {loss}, delta = {loss-old_loss}, status = {status}")
         #print(f"Epoch: {epoch} : {loss} : {status}")
         old_loss = loss
 
-        if not epoch % 100:
+        if not epoch % 10:
             if not first_save_flag:
                 first_save_flag = True
             else:
                 # now save model
-                print(f"Saving Model {model_name}")
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': loss,
-                    'learning_rate' : learning_rate,
-                }, model_name)
+                save_model(old_epochs,model,optimizer,loss,learning_rate,model_name)
 
     # now lets test
     model.eval()
-    test_and_display(model, cnt, X, Y, ts_array)
+    test_and_display(model, cnt, X, Y, ts_array, total_worse_count)
+
+    # finis

@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 # first backup
-./backup.sh
+#./backup.sh
 
 # then cleanup
 rm -f batch-pb-*.log
