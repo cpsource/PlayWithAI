@@ -226,27 +226,7 @@ def scale_tensor(tensor):
     
     return scaled_tensor
 
-class NeuralNetwork(nn.Module):
-    def __init__(self, k1, k2, k3, k4):
-        super().__init__()
-        self.l1 = nn.Linear(k1, k2)
-        self.l2 = nn.Sigmoid()
-        self.l3 = nn.Linear(k2,k3)
-        self.l4 = nn.Sigmoid()
-        self.l5 = nn.Linear(k3, k4)
-#        self.l6 = nn.ReLU()
-        self.l6 = nn.Softmax(dim=1)
-
-    def forward(self, x):
-        pred_1 = self.l1(x)
-        pred_2 = self.l2(pred_1)
-        pred_3 = self.l3(pred_2)
-        pred_4 = self.l4(pred_3)
-        pred_5 = self.l5(pred_4)
-        logits = pred_6 = self.l6(pred_5)
-        #return logits
-        return logits
-
+import my_class as net
 
 def initialize_model():
     global our_depth
@@ -262,7 +242,7 @@ def initialize_model():
 
     print(f"Initializing Model with {k1} {k2} {k3} {k4}")
     
-    model = NeuralNetwork(k1,k2,k3,k4).to(device)
+    model = net.NeuralNetwork(k1,k2,k3,k4).to(device)
 
     # Create the optimizer
     # we can also try lr=0.001, momentum=0.9
