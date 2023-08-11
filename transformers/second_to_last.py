@@ -304,7 +304,6 @@ def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, wi
         idx_z = cnt - 1
 
         z_oh = squ.one_hot_no_squish_max_ball(Y[idx_z],max_ball)
-        #z_oh = one_hot_encode_array_39(np.array(Y[idx_z])).reshape(1,40)
         ball = operator.indexOf(z_oh[0],1.0)
         
         #print(ball, z_oh)
@@ -397,10 +396,19 @@ if __name__ == "__main__":
             print("At 400 epoch limit, exiting")
             exit(0)
 
-    #largest = find_largest_integer_in_array(ts_array)
-    #print(f"Largest integer: {largest}")
-    #exit(0)
+    # determine the largest ball we are playing
+    max_ball = ts_array[0]
+    for i in ts_array:
+        if i > max_ball:
+            max_ball = i
+    print(f"max_ball = {max_ball}")
 
+    #print(ts_array)
+    #exit(0)
+    
+    # track number of each ball (strange way to get an array of 0's)
+    ball_count_array = [0]*(max_ball+1)
+    
     tmp = len(ts_array)
     idx = 0
     X = []
@@ -419,13 +427,13 @@ if __name__ == "__main__":
         # onward
         idx += 1
 
-    # determine the largest ball we are playing
-    max_ball = ts_array[0]
-    for i in ts_array:
-        if i > max_ball:
-            max_ball = i
-    print(f"max_ball = {max_ball}")
+    # display ball_count_array
+    #for idx,z in enumerate(ball_count_array):
+        #print(f"{idx}, {z}")
 
+    #print(len(X))
+    #exit(0)
+    
     # initialize our model
     initialize_model((max_ball+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball+1))
 
@@ -440,8 +448,6 @@ if __name__ == "__main__":
     # attempt to reload pre-trained model from disk
     attempt_reload()
     
-    # just do one training call
-
     # what is the top of Y that we can consider ?
     cnt = 0
     for i in Y:
@@ -492,6 +498,12 @@ if __name__ == "__main__":
             y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball)
             #print(y_oh)
             x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball)
+
+            # only do once
+            if epoch == old_epochs:
+                for z in X[idx]:
+                    ball_count_array[z] += 1
+                
             #print(x_oh)
             
             # convert to tensors
@@ -524,6 +536,10 @@ if __name__ == "__main__":
                 # now save model
                 save_model(epoch,model,optimizer,loss,learning_rate,model_name)
 
+    # display
+    for i,x in enumerate(ball_count_array):
+        print(f"ball = {i}, count = {x}")
+        
     # now lets test
     model.eval()
     test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball)
