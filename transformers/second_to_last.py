@@ -60,6 +60,9 @@ loss_fn = None
 my_col = 6
 # in check mode
 is_check = False
+# force a cnt
+my_cnt_flag = False
+my_cnt = 0
 
 device = (
     "cuda"
@@ -439,6 +442,7 @@ if __name__ == "__main__":
     cmd.set_my_col(sys.argv)
     winning_numbers = cmd.get_winning_numbers(sys.argv)
     cmd.set_our_game(sys.argv)
+    my_cnt_flag, my_cnt = cmd.set_cnt(sys.argv)
     if cmd.is_test(sys.argv):
         print('Running in test mode')
         test_mode = True
@@ -502,7 +506,11 @@ if __name__ == "__main__":
     cnt = 0
     for i in Y:
         cnt += 1
-    print(f"Number of elements in Y: {cnt}")
+    if my_cnt_flag:
+        cnt += my_cnt
+        print(f"Number of elements in Y forced (cnt): {cnt}")
+    else:
+        print(f"Number of elements in Y (cnt): {cnt}")        
 
     if reloaded_flag:
         # prepare to train for another 100 epochs

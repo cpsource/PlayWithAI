@@ -2,6 +2,20 @@ import numpy as np
 import math
 import sys
 
+def set_cnt(array):
+    my_cnt = 0
+    flag = False
+    for item in array:
+        if flag:
+            my_cnt = int(item)
+            break
+        if '--cnt' == item:
+            flag = True
+            continue
+    if flag:
+        print(f"My Cnt set to {my_cnt}")
+    return flag, my_cnt
+
 def set_my_col(array):
     global my_col
     flag = False
