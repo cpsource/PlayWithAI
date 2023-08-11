@@ -37,6 +37,7 @@ from torch import nn
 #import sqlite3
 import cmd_lin as cmd
 import operator
+import squish as squ
 
 # reloaded from disk
 reloaded_flag = False
@@ -63,6 +64,10 @@ is_check = False
 # force a cnt
 my_cnt_flag = False
 my_cnt = 0
+# the laragest ball we are playing
+max_ball = None
+# our depth array = [our-depth , our-back, model-sizes...]
+our_depth = [30, 500, 2100, 630, 189, 40]
 
 device = (
     "cuda"
@@ -84,83 +89,6 @@ def set_lr(model,lr):
     global optimizer
     print(f"setting optimizer with lr = {lr}")
     optimizer = torch.optim.SGD(model.parameters(), lr=lr) # or -2 ???
-
-def one_hot_encode_array_with_pytorch_zz(array):
-  """One-hot encodes an array with PyTorch.
-
-  Args:
-    array: The array to one-hot encode.
-
-  Returns:
-    A one-hot encoded array.
-  """
-
-  #max_value = max(array) + 1
-  max_value = 40
-  one_hot_encoded_array = torch.zeros(max_value, dtype=torch.float32)
-  one_hot_encoded_array[array] = 1
-  return one_hot_encoded_array
-
-def one_hot_encode_array_39(array):
-  """One-hot encodes an array with PyTorch.
-
-  Args:
-    array: The array to one-hot encode.
-
-  Returns:
-    A one-hot encoded array.
-  """
-
-  tmp = np.zeros((array.size, 39 + 1))
-  tmp[np.arange(array.size), array] = 1
-  
-  # Flatten the array.
-  flat_array = tmp.flatten()
-
-  # Convert the flattened array to a list.
-  list_array = flat_array.tolist()
-
-  # Return the list representation of the array.
-  return np.array(list_array)
-
-def one_hot_encode_array_69(array):
-  """One-hot encodes an array with PyTorch.
-
-  Args:
-    array: The array to one-hot encode.
-
-  Returns:
-    A one-hot encoded array.
-  """
-
-  tmp = np.zeros((array.size, 69 + 1))
-  tmp[np.arange(array.size), array] = 1
-  
-  # Flatten the array.
-  flat_array = tmp.flatten()
-
-  # Convert the flattened array to a list.
-  list_array = flat_array.tolist()
-
-  # Return the list representation of the array.
-  return np.array(list_array)
-
-def break_up_integer_into_array(integer):
-  """Breaks up an integer into an array of integers.
-
-  Args:
-    integer: An integer from 1 to 26.
-
-  Returns:
-    An array of integers where the i'th index to array is 1 if i is the integer
-    input, and 0 otherwise.
-  """
-
-  array = [0] * 26
-  if integer <= 26:
-    array[integer - 1] = 1
-  return array
-
 
 def extract_second_to_last_column(data):
   """Extracts the second to last column from a string of data.
@@ -232,17 +160,17 @@ def scale_tensor(tensor):
 
 import my_class as net
 
-def initialize_model():
+def initialize_model(k1,k2,k3,k4):
     global our_depth
     global model
     global optimizer
     global loss_fn
     
     # make an instance of our network on device
-    k1 = 2100
-    k2 = 630
-    k3 = 189
-    k4 = 40
+    #k1 = 2100
+    #k2 = 630
+    #k3 = 189
+    #k4 = 40
 
     print(f"Initializing Model with {k1} {k2} {k3} {k4}")
     
@@ -366,7 +294,7 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
-def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers):
+def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball):
     ball = 0
     
     # lets test - a head game, this.
@@ -374,8 +302,9 @@ def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, wi
         idx_y = cnt - 2
         idx_x = cnt - 3
         idx_z = cnt - 1
-        
-        z_oh = one_hot_encode_array_39(np.array(Y[idx_z])).reshape(1,40)
+
+        z_oh = squ.one_hot_no_squish_max_ball(Y[idx_z],max_ball)
+        #z_oh = one_hot_encode_array_39(np.array(Y[idx_z])).reshape(1,40)
         ball = operator.indexOf(z_oh[0],1.0)
         
         #print(ball, z_oh)
@@ -389,10 +318,12 @@ def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, wi
         else:
             print("Error: no way to determine ball as --win is 0 length")
             exit(0)
-            
-    y_oh = one_hot_encode_array_39(np.array(Y[idx_y])).reshape(1,40)
+
+    y_oh = squ.one_hot_no_squish_max_ball(Y[idx_y],max_ball)
+    #y_oh = one_hot_encode_array_39(np.array(Y[idx_y])).reshape(1,40)
     #print(y_oh)
-    x_oh = one_hot_encode_array_69(np.array(X[idx_x])).reshape(1,2100)
+    x_oh = squ.one_hot_no_squish_max_ball(X[idx_x],max_ball)
+    #x_oh = one_hot_encode_array_69(np.array(X[idx_x])).reshape(1,2100)
     #print(x_oh)
             
     # convert to tensors
@@ -438,6 +369,7 @@ def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
     
 if __name__ == "__main__":
     cmd.give_help(sys.argv)
+    our_depth = cmd.get_our_depth(sys.argv)
     is_check = cmd.is_check_mode(sys.argv)
     cmd.set_my_col(sys.argv)
     winning_numbers = cmd.get_winning_numbers(sys.argv)
@@ -449,8 +381,53 @@ if __name__ == "__main__":
     else:
         print('Running in training mode')
 
+
+    # read in correct data file
+    ifile = f"data/{cmd.our_game}.csv"
+    print(f"Using datafile {ifile}")
+    ts_array = read_file_line_by_line_readline(ifile)
+    #print(max(ts_array))
+    #print(type(ts_array))
+    #print(ts_array)
+    #print(len)
+
+    if False:
+        # stop at 400 epochs
+        if not test_mode and epoch >= 400:
+            print("At 400 epoch limit, exiting")
+            exit(0)
+
+    #largest = find_largest_integer_in_array(ts_array)
+    #print(f"Largest integer: {largest}")
+    #exit(0)
+
+    tmp = len(ts_array)
+    idx = 0
+    X = []
+    Y = []
+    for i in range(0, tmp-our_depth[0]):
+        x = []
+        y = []
+        for j in range(0, our_depth[0]):
+            x.append(ts_array[j+idx])
+        y.append(ts_array[idx+our_depth[0]])
+
+        # now that x,y arrays are built, add them to X,Y
+        X.append(x)
+        Y.append(y)
+        
+        # onward
+        idx += 1
+
+    # determine the largest ball we are playing
+    max_ball = ts_array[0]
+    for i in ts_array:
+        if i > max_ball:
+            max_ball = i
+    print(f"max_ball = {max_ball}")
+
     # initialize our model
-    initialize_model()
+    initialize_model((max_ball+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball+1))
 
     model_name = f"models/second-to-last-{cmd.our_game}.model"
     print(f"Model Name: {model_name}")
@@ -462,47 +439,10 @@ if __name__ == "__main__":
 
     # attempt to reload pre-trained model from disk
     attempt_reload()
-
-    # read in correct data file
-    ifile = f"data/{cmd.our_game}.csv"
-    print(f"Using datafile {ifile}")
-    ts_array = read_file_line_by_line_readline(ifile)
-    #print(max(ts_array))
-    #print(type(ts_array))
-    #print(ts_array)
-    #print(len)
-
-    # stop at 400 epochs
-    if not test_mode and epoch >= 400:
-        print("At 400 epoch limit, exiting")
-        exit(0)
-
-    #largest = find_largest_integer_in_array(ts_array)
-    #print(f"Largest integer: {largest}")
-    #exit(0)
-
-    len = len(ts_array)
-    training_set_size = 30
-    idx = 0
-    X = []
-    Y = []
-    for i in range(0, len-training_set_size):
-        x = []
-        y = []
-        for j in range(0, training_set_size):
-            x.append(ts_array[j+idx])
-        y.append(ts_array[idx+training_set_size])
-
-        # now that x,y arrays are built, add them to X,Y
-        X.append(x)
-        Y.append(y)
-        
-        # onward
-        idx += 1
-        
+    
     # just do one training call
 
-    # how many elements ???
+    # what is the top of Y that we can consider ?
     cnt = 0
     for i in Y:
         cnt += 1
@@ -520,7 +460,7 @@ if __name__ == "__main__":
         print(f"New Epochs: {epochs}")
     else:
         # number of epochs to execute
-        epochs = 101
+        epochs = 201
         old_epochs = 0
 
     old_loss = 1.0
@@ -545,13 +485,13 @@ if __name__ == "__main__":
             learning_rate /= 10.0
             set_lr(model,learning_rate)
         
-        idx = 0
+        idx = top + our_depth[1]
         while idx < top:
             # show our handywork
             #print(X[0],Y[0])
-            y_oh = one_hot_encode_array_39(np.array(Y[idx])).reshape(1,40)
+            y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball)
             #print(y_oh)
-            x_oh = one_hot_encode_array_69(np.array(X[idx])).reshape(1,2100)
+            x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball)
             #print(x_oh)
             
             # convert to tensors
@@ -586,6 +526,6 @@ if __name__ == "__main__":
 
     # now lets test
     model.eval()
-    test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers)
+    test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball)
 
     # finis

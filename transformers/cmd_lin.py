@@ -37,19 +37,28 @@ def set_my_col(array):
     return
 
 # set a depth
-our_depth = [100, 34, 12, 1]
-def set_our_depth(array):
-    global our_depth
-    depth_array = [0]*5
+#our_depth = [30,our-back,2100,630,189,40]
+def get_our_depth(array):
+    tmp = None
+    res = []
     flag = False
     for item in array:
         if flag:
-            our_depth[0] = int(item)
+            tmp = item
             break
         if '-d' == item or '--depth' == item:
             flag = True
             continue
-    if flag:
+
+    # now convert string to an int array
+    if tmp is not None:
+        for number in tmp[1:-1].split(","):
+            res.append(int(number))
+
+    print(f"Our Depth is {res}")
+    return res
+
+    if False and flag:
         # calculate rest of our_depth
         our_depth[1] = int(math.ceil(our_depth[0]/3))
         our_depth[2] = int(math.ceil(our_depth[1]/3))

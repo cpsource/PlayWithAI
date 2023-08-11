@@ -79,6 +79,25 @@ def one_hot_no_squish(array):
     # Return the list representation of the array.
     return tmp
 
+def one_hot_no_squish_max_ball(array, max_ball):
+    a = []
+    for x in array:
+        a.append(x)
+
+    # get length of a
+    cnt = 0
+    for i in a:
+        cnt += 1
+
+    # build an array of 0's
+    tmp = [[0] * (cnt*(max_ball+1))]
+
+    for idx, val in enumerate(a):
+        tmp[0][idx*(max_ball+1) + val] = 1
+
+    # Return the list representation of the array.
+    return tmp
+
 def read_file_line_by_line_readline(filename):
   """Reads a file line by line using readline.
 
