@@ -1,10 +1,10 @@
 #!/home/pagec/venv/bin/python3
 
 # Col #2 - of (1,2,3,4,5)
-my_col = 2
+my_col = 1
 test_mode = False
 skip_array = None
-learning_rate = 1e-1
+learning_rate = 1e-2
 model_name = ""
 reloaded_flag = False
 probs_file_loaded = False
@@ -44,6 +44,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from torch import nn
 import sums
+import squish as squ
 
 #import torch.optim as optim
 #from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -91,25 +92,28 @@ np.set_printoptions(threshold=sys.maxsize)
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.l0 = nn.Linear(5041, 5041) # each next layer will be 30% of previous layer
-        self.l0s = nn.Sigmoid()
+#        self.l0 = nn.Linear(5041, 5041) # each next layer will be 30% of previous layer
+#        self.l0s = nn.Sigmoid()
         self.l1 = nn.Linear(5041, 2100) # each next layer will be 30% of previous layer and multiple of 70
         self.l2 = nn.Sigmoid()
         self.l3 = nn.Linear(2100,140)
+#        self.dropout = nn.Dropout(p=0.01)
         self.l4 = nn.Sigmoid()
         self.l5 = nn.Linear(140, 71)
 #        self.l6 = nn.ReLU()
-        self.l6 = nn.Softmax(dim=1) # This will be column #1 result
+#        self.l6 = nn.Softmax(dim=1) # This will be column #1 result
 
     def forward(self, x):
-        pred_0 = self.l0(x)
-        pred_0s = self.l0s(pred_0)
-        pred_1 = self.l1(pred_0s)
+#        pred_0 = self.l0(x)
+#        pred_0s = self.l0s(pred_0)
+        pred_1 = self.l1(x)
+        #pred_1 = self.dropout(pred_1)
         pred_2 = self.l2(pred_1)
+        #pred_2 = self.dropout(pred_2)
         pred_3 = self.l3(pred_2)
         pred_4 = self.l4(pred_3)
-        pred_5 = self.l5(pred_4)
-        logits = pred_6 = self.l6(pred_5)
+        logits = pred_5 = self.l5(pred_4)
+#        logits = pred_6 = self.l6(pred_5)
         #return logits
         return logits
 
@@ -221,7 +225,14 @@ def attempt_reload():
 
 #loss_fn = nn.CrossEntropyLoss()
 loss_fn = nn.MSELoss()
-        
+
+def my_loss_fn(y,y_hat):
+    #m = y_in * y_hat_in
+    m = torch.where(y == 1.0, torch.zeros_like(y), torch.ones_like(y))
+    #print(m*y_hat)
+    #exit(0)
+    return torch.sum((m*y_hat)**2)
+
 # Main Training Loop
 def train(model, X, y, loss_fn, optimizer):
 
@@ -234,9 +245,13 @@ def train(model, X, y, loss_fn, optimizer):
     y_hat = model(X)
 
     # Calculate loss
-    loss = loss_fn(y, y_hat)
+    #loss = loss_fn(y, y_hat)
+    loss = my_loss_fn(y, y_hat)
 
-    #print(f"y_hat = {y_hat}\nloss = {loss}\n")
+    #print(f"loss = {loss}")
+    
+    #x = y * y_hat
+    #print(f"x = {x}\ny = {y}\ny_hat = {y_hat}\nloss = {loss}\n")
 
     # Zero gradients from last time
     optimizer.zero_grad()
@@ -321,7 +336,7 @@ def test_and_display(model, cnt, ts_array, my_col):
     model.eval()
     if True:
         # lets test against the last one (which the model has never seen)
-        idx = cnt - 1
+        idx = cnt - 2
 
         while True:
             # build x of the form -70 -> -1
@@ -352,6 +367,10 @@ def test_and_display(model, cnt, ts_array, my_col):
             # call the model to make the prediction
             
             y_hat = model(one_hot_encoded_x).cpu()
+
+            #print(f"y_hat = {y_hat}")
+            #exit(0)
+            
             y_hat_detached = y_hat.detach()
             a = y_hat_detached_np = y_hat_detached.numpy()[0]
 
@@ -398,70 +417,56 @@ def test_and_display(model, cnt, ts_array, my_col):
                     break
             sums.replace_col(our_game,my_col,new_sums)
             break
-            
+
 def single_pass(model, loss_fn, optimizer, cnt, ts_array):
     global my_col
-    idx = 71 # lets start here as it's easier to build our x
-    #idx = 1505 # lets start here as it's easier to build our x
-    # don't do the last one
-    while idx < (cnt-1):
-        # build x of the form -71 -> -1
-        x = []
-        for i in range(-71, 0):
-            #print(f"adding - {i+idx}: {i} - ts_array[{i+idx}]: {ts_array[i+idx]}");
-            x.append(ts_array[i+idx][my_col-1])
-        #print(f"len(x) = {len(x)}")
-        #exit(0)
+    our_depth = [71]
+    our_back = 500
+    idx_x = cnt-2 - our_back
+    idx_y = idx_x + our_depth[0]
+
+    #print(f"our_depth = {our_depth}, our_back = {our_back}")
+    #print(f"idx_x = {idx_x}, idx_y = {idx_y}")
+    #exit(0)
+    
+    while idx_y < (cnt-2):
+        #print(f"sp idx = {idx}")
         
         # build y
-        y = [ts_array[idx][(my_col-1)]]
+        y = [ts_array[idx_y][my_col-1]]
+        y_hot = squ.one_hot_no_squish(y)
+        #print(y_hot)
+        #exit(0)
+        # cvt y to Y for torch
+        Y = torch.as_tensor(y_hot).float().cuda()
 
-        #print(f"idx: {idx}, my_col-1 = {my_col-1}, ts_array = {ts_array[idx]}")
+        # build x
+        tmp = []
+        for i in range(idx_x, idx_y):
+            if i >= cnt:
+                print(f"out of range, i = {i}, idx = {idx}")
+                exit(0)
+            tmp.append(ts_array[i][my_col-1])
+        x = []
+        for i in tmp:
+            x.append(i)
+        x_hot = squ.one_hot_no_squish(x)
+        #print(x_hot)
+        #exit(0)
         
-        if False:
-            # show our handywork
-            print(f"idx: {idx}")
-            print(f"len(x) = {len(x)}")
-            print(x)
-            print(f"len(y) = {len(y)}")
-            print(y)
-            print(ts_array)
-        
-        # debug
-        #idx += 1
-        #continue
-    
-        # now we must one-hot y
-        max_value = 71
-        if y[0] >= 70:
-            y[0] = 70
-        one_hot_encoded_y = torch.zeros(max_value, dtype=torch.float32)
-        one_hot_encoded_y[y[0]] = 1.0
-        one_hot_encoded_y = one_hot_encoded_y.unsqueeze(0)
-        one_hot_encoded_y = one_hot_encoded_y.to(device)    
-        #print(f"len(y) = {len(one_hot_encoded_y)}")
-    
-        # now we must one-hot x
-        max_value = 71*71
-        one_hot_encoded_x = torch.zeros(max_value, dtype=torch.float32)
-        for index, value in enumerate(x):
-            #print(index,value)
-            if value > 70:
-                value = 70
-            one_hot_encoded_x[index*71 + value] = 1.0
-        one_hot_encoded_x = one_hot_encoded_x.unsqueeze(0)
-        one_hot_encoded_x = one_hot_encoded_x.to(device)    
-        #print(f"len(x) = {len(one_hot_encoded_x)}")
+        # cvt x to X for torch 
+        X = torch.as_tensor(x_hot).float().cuda()
 
         # train
         loss = train(model,
-                     one_hot_encoded_x,
-                     one_hot_encoded_y,
+                     X,
+                     Y,
                      loss_fn,
                      optimizer)
 
         # onward
-        idx += 1
+        idx_x += 1
+        idx_y += 1
     # done
     return loss
 
@@ -597,12 +602,12 @@ if __name__ == "__main__":
 
         old_loss = loss
 
-        # save every 100
-        if not epoch % 100:
+        # save every 10
+        if not epoch % 10:
             if not first_save_flag:
                 first_save_flag = True
             else:
-                print("Saving Model {model_name}")
+                print(f"Saving Model {model_name}")
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
