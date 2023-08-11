@@ -16,8 +16,8 @@ def set_my_col(array):
             flag = True
             continue
     if not flag:
+        my_col = 6
         print(f"My Column set to default {my_col}")
-        my_col = 1
     else:
         print(f"My Column set to {my_col}")
     return
@@ -96,7 +96,7 @@ def set_our_game(array):
             flag = True
             continue
     print(f"Our Game is {our_game}")
-    return
+    return our_game
 
 def is_discount(array):
     for item in array:
@@ -118,7 +118,13 @@ def is_zero(array):
         if '--zero' == item or '-z' == item:
             return True
     return False
-    
+
+def is_check_mode(array):
+    for item in array:
+        if '--check' == item or '-ch' == item:
+            return True
+    return False
+
 def give_help(array):
     '''
     Give help if asked. Exit afterwards.
@@ -134,7 +140,8 @@ def give_help(array):
             print("  --discount - use discount_array for one-hot")            
             #print("  --skip '[0,...]' - skip these balls as they are impossible")
             print("  --zero - unlink the model befor starting")
-            print("  --win [a,b,c,d,e] - return winning numbers array")
+            print("  --win [a,b,c,d,e,f] - return winning numbers array")
+            print("  --check - run in check mode")
             exit(0)
     return
 
