@@ -298,9 +298,9 @@ def single_pass(model, loss_fn, optimizer, cnt, ts_array):
         # build x
         tmp = []
         for i in range(idx_x, idx_y):
-            if i == idx:
-                print("can't consider y")
-                exit(0)
+            #if i == idx:
+            #    print("can't consider y")
+            #    exit(0)
             if i >= cnt:
                 print(f"out of range, i = {i}, idx = {idx}")
                 exit(0)
