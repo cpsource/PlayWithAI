@@ -57,7 +57,7 @@ model = None
 optimizer = None
 # loss function
 loss_fn = None
-# column 1 to 6, 6 being the pb
+# column 1 to 6, 6 being the pb, the default if no --col N used in command line
 my_col = 6
 # in check mode
 is_check = False
@@ -90,7 +90,7 @@ def set_lr(model,lr):
     print(f"setting optimizer with lr = {lr}")
     optimizer = torch.optim.SGD(model.parameters(), lr=lr) # or -2 ???
 
-def extract_second_to_last_column(data):
+def extract_column(data,col):
   """Extracts the second to last column from a string of data.
 
   Args:
@@ -101,10 +101,10 @@ def extract_second_to_last_column(data):
   """
 
   columns = data.split(",")
-  second_to_last_column = columns[-2]
-  return int(second_to_last_column)
+  val = columns[col]
+  return int(val)
 
-def read_file_line_by_line_readline(filename):
+def read_file_line_by_line_readline(filename, my_col):
   """Reads a file line by line using readline.
 
   Args:
@@ -113,7 +113,8 @@ def read_file_line_by_line_readline(filename):
   Returns:
     A list of the lines in the file.
   """
-
+  adjust_col = [0,-7,-6,-5,-4,-3,-2]
+  
   with open(filename, "r") as f:
     ts_array = []
     line_number = 1
@@ -130,7 +131,7 @@ def read_file_line_by_line_readline(filename):
         break
       if line[0] == '#':
           continue
-      x = extract_second_to_last_column(line)
+      x = extract_column(line,adjust_col[my_col])
       if cmd.our_game == 'mm':
           if x > 25:
               print(f"mm Warning at line {line_number}: {x} gt 25, adjusting")
@@ -225,7 +226,7 @@ def attempt_reload():
     # done
     return
 
-# Main Training Loop
+# Training Loop
 def train(model, X, y, loss_fn, optimizer):
 
     #print(f"train: y = {y}")
@@ -380,11 +381,10 @@ if __name__ == "__main__":
     else:
         print('Running in training mode')
 
-
     # read in correct data file
     ifile = f"data/{cmd.our_game}.csv"
     print(f"Using datafile {ifile}")
-    ts_array = read_file_line_by_line_readline(ifile)
+    ts_array = read_file_line_by_line_readline(ifile,my_col)
     #print(max(ts_array))
     #print(type(ts_array))
     #print(ts_array)
@@ -437,7 +437,7 @@ if __name__ == "__main__":
     # initialize our model
     initialize_model((max_ball+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball+1))
 
-    model_name = f"models/second-to-last-{cmd.our_game}.model"
+    model_name = f"models/second-to-last-{cmd.our_game}-{my_col}.model"
     print(f"Model Name: {model_name}")
     
     if cmd.is_zero(sys.argv):

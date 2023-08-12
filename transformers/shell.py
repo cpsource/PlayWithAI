@@ -2,6 +2,25 @@ import subprocess
 import re
 import pickle
 import signal
+import cmd_lin as cmd
+
+'''
+  Col    Meaning
+  --------------
+  1      distance
+  2      ball #
+  3      number of occurances of ball #
+  4      game offset, 0,-1,-2 etc
+  5      width of game  30, 35, etc
+  6      depth of game, -100 etc
+  7      neural network sizes
+  8      neural network sizes
+  9      neural network sizes
+ 10      neural network sizes
+'''
+
+# which column
+my_col = 6
 
 signal_flag = False
 def signal_handler(signum, frame):
@@ -32,6 +51,7 @@ def find_count(output,regex):
   return int(match.group(1))
 
 if __name__ == "__main__":
+  cmd.set_my_col(sys.argv)
 
   results = []
   game = 'mm'
@@ -78,7 +98,7 @@ if __name__ == "__main__":
     if signal_flag:
       break
   
-  pfn = f"shell-{game}.pkl" # Pickle File Name
+  pfn = f"shell-{game}-{my_col}.pkl" # Pickle File Name
   print(f"Writing results to {pfn}")
   with open(pfn, "wb+") as f:
     pickle.dump(results,f)
