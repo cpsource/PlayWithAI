@@ -1,8 +1,11 @@
+#!/home/pagec/venv/bin/python3
+
 import subprocess
 import re
 import pickle
 import signal
 import cmd_lin as cmd
+import sys
 
 '''
   Col    Meaning
@@ -59,8 +62,8 @@ if __name__ == "__main__":
   signal.signal(signal.SIGINT, signal_handler)
   
   # investigate effect of depth vs distance
-  i = 100
-  for l in range(25,350,10):
+  l = 265
+  for i in range(20, 140, 10):
     for j in range(-10,1):
       k = int((i * 26)*.3)
       pgm = f'./second_to_last.py --game mm --check --cnt {j} --depth "[{i},-{l},0,{k},189,0]" --zero'

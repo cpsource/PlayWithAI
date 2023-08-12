@@ -146,22 +146,25 @@ if __name__ == "__main__":
     plt.ylabel(y_axis)
 
     # Show the plot
-    plt.show()
+    #plt.show()
 
-    # check stddev of col 1 againt unique col 6
-    tst_col = 6
+    # check stddev of col 1 againt unique col 5
+    tst_col = 5
     col_one = 1
     uniques = extract_col_unique(results,tst_col)
     sums = np.zeros(len(uniques), dtype=np.float32)
+    mean = np.zeros(len(uniques), dtype=np.float32)    
     cnt = 0
     for result in results:
         #print(uniques,result)
         idx = get_index(uniques,result[tst_col-1])
         sums[idx] += result[col_one-1]*result[col_one-1]
+        mean[idx] += result[col_one-1]
         cnt += 1
     sums /= cnt
+    mean /= cnt
     sums = np.sqrt(sums)
     x = np.argsort(sums)
     #print(x)
     for i in x:
-        print(f"{meaning[tst_col]}: {uniques[i]}, Standard Deviation of Distance: {sums[i]}")
+        print(f"{meaning[tst_col]}: {uniques[i]}, Mean: {mean[i]}, Standard Deviation of Distance: {sums[i]}")
