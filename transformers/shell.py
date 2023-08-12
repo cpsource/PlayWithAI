@@ -1,7 +1,14 @@
 import subprocess
 import re
 import pickle
+import signal
 
+signal_flag = False
+def signal_handler(signum, frame):
+  global signal_flag
+  signal_flag = True
+  print("Control-C pressed! Exit will happen after the current shell command in progress.")
+  
 def find_numbers(string):
   """Finds and returns the two numbers in the specified string as integers."""
 
@@ -28,11 +35,15 @@ if __name__ == "__main__":
 
   results = []
   game = 'mm'
+
+  signal.signal(signal.SIGINT, signal_handler)
   
   # investigate effect of depth vs distance
-  for i in range(25,36):
+  i = 100
+  for l in range(25,350,10):
     for j in range(-10,1):
-      pgm = f'./second_to_last.py --game mm --check --cnt {j} --depth "[{i},-350,0,930,189,0]" --zero'
+      k = int((i * 26)*.3)
+      pgm = f'./second_to_last.py --game mm --check --cnt {j} --depth "[{i},-{l},0,{k},189,0]" --zero'
       print(pgm)
       output = shell_off_program(pgm)
       numbers = find_numbers(output)
@@ -61,8 +72,11 @@ if __name__ == "__main__":
 
       # store in grand results for later
       results.append(numbers)
-      #break
-    #break
+
+      if signal_flag:
+        break
+    if signal_flag:
+      break
   
   pfn = f"shell-{game}.pkl" # Pickle File Name
   print(f"Writing results to {pfn}")

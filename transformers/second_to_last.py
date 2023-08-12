@@ -466,7 +466,7 @@ if __name__ == "__main__":
         print(f"New Epochs: {epochs}")
     else:
         # number of epochs to execute
-        epochs = 201
+        epochs = 101
         old_epochs = 0
 
     old_loss = 1.0
