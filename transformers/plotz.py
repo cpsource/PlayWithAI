@@ -32,9 +32,9 @@ import numpy as np
 meaning = [0,
            "distance",
            "ball #",
-           "number of occurances of ball #",
+           "ball # occurances",
            "game offset, 0,-1,-2 etc",
-           "width of game  30, 35, etc",
+           "width of game 30, etc",
            "depth of game, -100 etc",
            "neural network sizes",
            "neural network sizes",
@@ -153,18 +153,22 @@ if __name__ == "__main__":
     col_one = 1
     uniques = extract_col_unique(results,tst_col)
     sums = np.zeros(len(uniques), dtype=np.float32)
-    mean = np.zeros(len(uniques), dtype=np.float32)    
+    mean = np.zeros(len(uniques), dtype=np.float32)
+    ctr  = np.zeros(len(uniques), dtype=np.float32)
     cnt = 0
     for result in results:
         #print(uniques,result)
         idx = get_index(uniques,result[tst_col-1])
         sums[idx] += result[col_one-1]*result[col_one-1]
         mean[idx] += result[col_one-1]
+        ctr[idx]  += 1
+        #print(f"added {result[col_one-1]}")
         cnt += 1
-    sums /= cnt
-    mean /= cnt
+    sums /= ctr
+    mean /= ctr
     sums = np.sqrt(sums)
     x = np.argsort(sums)
     #print(x)
     for i in x:
-        print(f"{meaning[tst_col]}: {uniques[i]}, Mean: {mean[i]}, Standard Deviation of Distance: {sums[i]}")
+        print(f"{meaning[tst_col]}: {uniques[i]}, Mean: %.2f, Standard Deviation of Distance: %.2f"
+              % (mean[i], sums[i]))
