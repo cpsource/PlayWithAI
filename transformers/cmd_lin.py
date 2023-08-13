@@ -13,16 +13,19 @@ def set_cnt(array):
             flag = True
             continue
     if flag:
+        if my_cnt > 0:
+            print("Error: cnt can't be greater than 0")
+            exit(0)
         print(f"My Cnt set to {my_cnt}")
     return flag, my_cnt
 
 def set_my_col(array):
-    global my_col
+    res = None
     flag = False
     for item in array:
         if flag:
-            my_col = int(item)
-            if my_col > 6 or my_col < 1:
+            res = int(item)
+            if res > 6 or res < 1:
                 print("--col must be between 1 and 6")
                 exit(0)
             break
@@ -30,11 +33,11 @@ def set_my_col(array):
             flag = True
             continue
     if not flag:
-        my_col = 6
-        print(f"My Column set to default {my_col}")
+        res = 6
+        print(f"My Column set to default {res}")
     else:
-        print(f"My Column set to {my_col}")
-    return
+        print(f"My Column set to {res}")
+    return res
 
 # set a depth
 #our_depth = [30,our-back,2100,630,189,40]

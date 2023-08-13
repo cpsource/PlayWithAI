@@ -38,6 +38,7 @@ from torch import nn
 import cmd_lin as cmd
 import operator
 import squish as squ
+import inspect
 
 # reloaded from disk
 reloaded_flag = False
@@ -64,10 +65,10 @@ is_check = False
 # force a cnt
 my_cnt_flag = False
 my_cnt = 0
-# the laragest ball we are playing
-max_ball = None
 # our depth array = [our-depth , our-back, model-sizes...]
 our_depth = [30, 500, 2100, 630, 189, 40]
+# maximum ball in play
+max_ball_expected = None
 
 device = (
     "cuda"
@@ -101,7 +102,12 @@ def extract_column(data,col):
   """
 
   columns = data.split(",")
+
   val = columns[col]
+
+  #print(col, val, columns)
+  #exit(0)
+  
   return int(val)
 
 def read_file_line_by_line_readline(filename, my_col):
@@ -113,38 +119,52 @@ def read_file_line_by_line_readline(filename, my_col):
   Returns:
     A list of the lines in the file.
   """
+  global max_ball_expected
+
   adjust_col = [0,-7,-6,-5,-4,-3,-2]
+
+  #print(my_col,adjust_col[my_col])
+  #exit(0)
+
+  # get max expected ball from web sites
+  if cmd.our_game == 'mm':
+      if my_col == 6:
+          max_ball_expected = 25
+      else:
+          max_ball_expected = 70
+  else:
+      if my_col == 6:
+          max_ball_expected = 26
+      else:
+          max_ball_expected = 69
   
   with open(filename, "r") as f:
     ts_array = []
     line_number = 1
 
-    # skip some at front
+    # skip some at front from older games
     if cmd.our_game == 'mm':
-        for i in range(1029):
+        for i in range(1449):
             f.readline()
             line_number += 1
-            
+
     while True:
       line = f.readline()
       if line == "":
         break
       if line[0] == '#':
+          line_number += 1
           continue
       x = extract_column(line,adjust_col[my_col])
-      if cmd.our_game == 'mm':
-          if x > 25:
-              print(f"mm Warning at line {line_number}: {x} gt 25, adjusting")
-              x %= 26
+
+      if x <= max_ball_expected:
+          ts_array.append(x)
       else:
-          if x > 39:
-              print(f"pb Warning at line {line_number}: {x} gt 39, adjusting")
-              x %= 39 
-        
-      ts_array.append(x)
+          print(f"Ball {x} rejected at line {line_number} as out of bounds [1..{max_ball_expected}]")
 
       # onward
       line_number += 1
+      continue
       
   f.close()
   return ts_array
@@ -295,7 +315,7 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
-def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball):
+def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected):
     ball = 0
     
     # lets test - a head game, this.
@@ -304,7 +324,7 @@ def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, wi
         idx_x = cnt - 3
         idx_z = cnt - 1
 
-        z_oh = squ.one_hot_no_squish_max_ball(Y[idx_z],max_ball)
+        z_oh = squ.one_hot_no_squish_max_ball(Y[idx_z],max_ball_expected)
         ball = operator.indexOf(z_oh[0],1.0)
         
         #print(ball, z_oh)
@@ -319,10 +339,10 @@ def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, wi
             print("Error: no way to determine ball as --win is 0 length")
             exit(0)
 
-    y_oh = squ.one_hot_no_squish_max_ball(Y[idx_y],max_ball)
+    y_oh = squ.one_hot_no_squish_max_ball(Y[idx_y],max_ball_expected)
     #y_oh = one_hot_encode_array_39(np.array(Y[idx_y])).reshape(1,40)
     #print(y_oh)
-    x_oh = squ.one_hot_no_squish_max_ball(X[idx_x],max_ball)
+    x_oh = squ.one_hot_no_squish_max_ball(X[idx_x],max_ball_expected)
     #x_oh = one_hot_encode_array_69(np.array(X[idx_x])).reshape(1,2100)
     #print(x_oh)
             
@@ -371,7 +391,7 @@ if __name__ == "__main__":
     cmd.give_help(sys.argv)
     our_depth = cmd.get_our_depth(sys.argv)
     is_check = cmd.is_check_mode(sys.argv)
-    cmd.set_my_col(sys.argv)
+    my_col = cmd.set_my_col(sys.argv)
     winning_numbers = cmd.get_winning_numbers(sys.argv)
     cmd.set_our_game(sys.argv)
     my_cnt_flag, my_cnt = cmd.set_cnt(sys.argv)
@@ -396,23 +416,28 @@ if __name__ == "__main__":
             print("At 400 epoch limit, exiting")
             exit(0)
 
-    # determine the largest ball we are playing
-    max_ball = ts_array[0]
-    for i in ts_array:
-        if i > max_ball:
-            max_ball = i
-    print(f"max_ball = {max_ball}")
+    if False:
+        # determine the largest ball we are playing
+        max_ball = ts_array[0]
+        for i in ts_array:
+            if i > max_ball:
+                max_ball = i
+        print(f"max_ball = {max_ball}")
 
     #print(ts_array)
     #exit(0)
     
     # track number of each ball (strange way to get an array of 0's)
-    ball_count_array = [0]*(max_ball+1)
+    ball_count_array = [0]*(max_ball_expected+1)
     
     tmp = len(ts_array)
     idx = 0
     X = []
     Y = []
+
+    print(tmp, our_depth)
+    print(f"436: (len(ts_array)) tmp = {tmp}, our_depth[0] = {our_depth[0]}")
+    
     for i in range(0, tmp-our_depth[0]):
         x = []
         y = []
@@ -435,7 +460,7 @@ if __name__ == "__main__":
     #exit(0)
     
     # initialize our model
-    initialize_model((max_ball+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball+1))
+    initialize_model((max_ball_expected+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball_expected+1))
 
     model_name = f"models/second-to-last-{cmd.our_game}-{my_col}.model"
     print(f"Model Name: {model_name}")
@@ -447,11 +472,18 @@ if __name__ == "__main__":
 
     # attempt to reload pre-trained model from disk
     attempt_reload()
+
+    if len(Y) != len(X):
+        print(f"476: something wrong with Y and X")
+        exit(0)
+    #frame = inspect.currentframe()
+    #print(f"{frame.f_lineno}: len(Y) = {len(Y)}")
+    #print(f"479: len(X) = {len(X)}")
+    #print(f"480: my_cnt = {my_cnt}")
+    #exit(0)
     
     # what is the top of Y that we can consider ?
-    cnt = 0
-    for i in Y:
-        cnt += 1
+    cnt = len(Y)
     if my_cnt_flag:
         cnt += my_cnt
         print(f"Number of elements in Y forced (cnt): {cnt}")
@@ -495,9 +527,9 @@ if __name__ == "__main__":
         while idx < top:
             # show our handywork
             #print(X[0],Y[0])
-            y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball)
+            y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball_expected)
             #print(y_oh)
-            x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball)
+            x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball_expected)
 
             # only do once
             if epoch == old_epochs:
@@ -542,6 +574,6 @@ if __name__ == "__main__":
         
     # now lets test
     model.eval()
-    test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball)
+    test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball_expected)
 
     # finis
