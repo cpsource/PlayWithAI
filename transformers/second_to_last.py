@@ -47,7 +47,7 @@ test_mode = False
 # what's our model name
 model_name = ""
 # what's our learning rate
-learning_rate = 1e-3
+learning_rate = 1e-2
 # winning numbers
 winning_numbers = []
 # total worse count during training
@@ -155,7 +155,19 @@ def read_file_line_by_line_readline(filename, my_col):
       if line[0] == '#':
           line_number += 1
           continue
-      x = extract_column(line,adjust_col[my_col])
+
+      # we only use in sorted order, so get all balls
+      # then sort them
+      
+      m = []
+      m.append(extract_column(line,adjust_col[1]))
+      m.append(extract_column(line,adjust_col[2]))
+      m.append(extract_column(line,adjust_col[3]))
+      m.append(extract_column(line,adjust_col[4]))
+      m.append(extract_column(line,adjust_col[5]))
+      m.sort()
+      
+      x = m[my_col-1]
 
       if x <= max_ball_expected:
           ts_array.append(x)
@@ -318,24 +330,43 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
-def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected):
+def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected, my_prev_play):
     ball = 0
     
     # lets test
-    if is_check:
-        idx = top -1
+    idx = len(ts_array) + my_prev_play
+    print(f"my_prev_play = {my_prev_play}, idx = {idx}, len(ts_array) = {len(ts_array)}")
+    if is_check is True:
+        print(f"idx = {idx}")
+        ball = ts_array[idx]
+        print(f"Testing for ball in ts_array[{idx}] = {ball}")
+        x = []
+        Xtmp = []
+        for j in range(idx-our_depth[0], idx):
+            x.append(ts_array[j])
+        Xtmp.append(x)
+        x_oh = squ.one_hot_no_squish_max_ball(Xtmp[0],max_ball_expected)        
 
-        if True:
-            ball = ts_array[idx]
-        else:
-            z_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball_expected)
-            ball = operator.indexOf(z_oh[0],1.0)
-        x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball_expected)        
+        #print(f"{len(Xtmp)}, Xtmp = {Xtmp}")
+        #exit(0)
 
-        #print(ball, z_oh)
-        
     else:
-        x_oh = squ.one_hot_no_squish_max_ball(X[top-1],max_ball_expected)        
+        
+        #print("is_check is False")
+        # build array deepth back from the most recent play
+        x = []
+        Xtmp = []
+        tmp = len(ts_array)
+        for j in range(tmp-our_depth[0], tmp):
+            x.append(ts_array[j])
+        Xtmp.append(x)
+        #print(Xtmp)
+        #print(X[len(X)-1])
+        #print(f"len(ts_array) = {len(ts_array)}, ts_array[] = {ts_array[len(ts_array)-1]}")
+        #print(idx,our_depth[0], len(X), X[len(X)-1], Xtmp)
+        #exit(0)
+        x_oh = squ.one_hot_no_squish_max_ball(Xtmp[0],max_ball_expected)        
+
         if len(winning_numbers) > 0:
             ball = winning_numbers[5]
         else:
@@ -449,7 +480,7 @@ if __name__ == "__main__":
         idx_y += 1
 
     # display our handy work
-    print(f"Max Calls to Train: {len(X)}")
+    print(f"Max Plays to Train: {len(X)}")
     #for idx,z in enumerate(ball_count_array):
         #print(f"{idx}, {z}")
     #print(X)
@@ -503,7 +534,7 @@ if __name__ == "__main__":
 
     # train on 1 less play if we want to check
     if is_check:
-        top -= 1
+        top -= 2
         
     for epoch in range(old_epochs,epochs):
 
@@ -556,11 +587,12 @@ if __name__ == "__main__":
                 save_model(epoch,model,optimizer,loss,learning_rate,model_name)
 
     # display
-    for i,x in enumerate(ball_count_array):
-        print(f"ball = {i}, count = {x}")
+    if False:
+        for i,x in enumerate(ball_count_array):
+            print(f"ball = {i}, count = {x}")
         
     # now lets test
     model.eval()
-    test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball_expected)
+    test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball_expected, my_prev_play)
 
     # finis

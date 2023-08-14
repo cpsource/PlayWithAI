@@ -9,14 +9,14 @@ def set_prev_play(array):
         if flag:
             my_cnt = int(item)
             break
-        if '--cnt' == item:
+        if '--prev-play' == item:
             flag = True
             continue
     if flag:
-        if my_cnt > 0:
-            print("Error: cnt can't be greater than 0")
+        if my_cnt >= 0:
+            print("Error: must be less than 0")
             exit(0)
-        print(f"My Cnt set to {my_cnt}")
+        print(f"Prev Play set to {my_cnt}")
     return flag, my_cnt
 
 def set_cnt(array):
