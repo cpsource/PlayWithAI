@@ -2,6 +2,23 @@ import numpy as np
 import math
 import sys
 
+def set_prev_play(array):
+    my_cnt = 0
+    flag = False
+    for item in array:
+        if flag:
+            my_cnt = int(item)
+            break
+        if '--cnt' == item:
+            flag = True
+            continue
+    if flag:
+        if my_cnt > 0:
+            print("Error: cnt can't be greater than 0")
+            exit(0)
+        print(f"My Cnt set to {my_cnt}")
+    return flag, my_cnt
+
 def set_cnt(array):
     my_cnt = 0
     flag = False
@@ -168,6 +185,7 @@ def give_help(array):
             print("  --zero - unlink the model befor starting")
             print("  --win [a,b,c,d,e,f] - return winning numbers array")
             print("  --check - run in check mode")
+            print("  --prev-play n - set prev play, 0,-1,-2,...")
             exit(0)
     return
 

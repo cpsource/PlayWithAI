@@ -63,8 +63,8 @@ my_col = 6
 # in check mode
 is_check = False
 # force a cnt
-my_cnt_flag = False
-my_cnt = 0
+my_prev_play_flag = False
+my_prev_play = 0
 # our depth array = [our-depth , our-back, model-sizes...]
 our_depth = [30, 500, 2100, 630, 189, 40]
 # maximum ball in play
@@ -167,6 +167,9 @@ def read_file_line_by_line_readline(filename, my_col):
       continue
       
   f.close()
+
+  #print(ts_array)
+
   return ts_array
 
 def scale_tensor(tensor):
@@ -315,39 +318,31 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
-def test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected):
+def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected):
     ball = 0
     
-    # lets test - a head game, this.
+    # lets test
     if is_check:
-        idx_y = cnt - 2
-        idx_x = cnt - 3
-        idx_z = cnt - 1
+        idx = top -1
 
-        z_oh = squ.one_hot_no_squish_max_ball(Y[idx_z],max_ball_expected)
-        ball = operator.indexOf(z_oh[0],1.0)
-        
+        if True:
+            ball = ts_array[idx]
+        else:
+            z_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball_expected)
+            ball = operator.indexOf(z_oh[0],1.0)
+        x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball_expected)        
+
         #print(ball, z_oh)
         
     else:
-        idx_y = cnt - 1
-        idx_x = cnt - 2
-        idx_z = 0
+        x_oh = squ.one_hot_no_squish_max_ball(X[top-1],max_ball_expected)        
         if len(winning_numbers) > 0:
             ball = winning_numbers[5]
         else:
             print("Error: no way to determine ball as --win is 0 length")
-            exit(0)
+            ball = 0
 
-    y_oh = squ.one_hot_no_squish_max_ball(Y[idx_y],max_ball_expected)
-    #y_oh = one_hot_encode_array_39(np.array(Y[idx_y])).reshape(1,40)
-    #print(y_oh)
-    x_oh = squ.one_hot_no_squish_max_ball(X[idx_x],max_ball_expected)
-    #x_oh = one_hot_encode_array_69(np.array(X[idx_x])).reshape(1,2100)
-    #print(x_oh)
-            
     # convert to tensors
-    #y_oh_t = torch.tensor(y_oh, dtype=torch.float32, device=device)
     x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
 
     # run prepared data through the model
@@ -394,7 +389,7 @@ if __name__ == "__main__":
     my_col = cmd.set_my_col(sys.argv)
     winning_numbers = cmd.get_winning_numbers(sys.argv)
     cmd.set_our_game(sys.argv)
-    my_cnt_flag, my_cnt = cmd.set_cnt(sys.argv)
+    my_prev_play_flag, my_prev_play = cmd.set_prev_play(sys.argv)
     if cmd.is_test(sys.argv):
         print('Running in test mode')
         test_mode = True
@@ -404,59 +399,61 @@ if __name__ == "__main__":
     # read in correct data file
     ifile = f"data/{cmd.our_game}.csv"
     print(f"Using datafile {ifile}")
+
+    # get a column array. The last element will be the last play
     ts_array = read_file_line_by_line_readline(ifile,my_col)
     #print(max(ts_array))
     #print(type(ts_array))
     #print(ts_array)
     #print(len)
-
+    #exit(0)
+    
     if False:
         # stop at 400 epochs
         if not test_mode and epoch >= 400:
             print("At 400 epoch limit, exiting")
             exit(0)
 
-    if False:
-        # determine the largest ball we are playing
-        max_ball = ts_array[0]
-        for i in ts_array:
-            if i > max_ball:
-                max_ball = i
-        print(f"max_ball = {max_ball}")
-
-    #print(ts_array)
-    #exit(0)
-    
     # track number of each ball (strange way to get an array of 0's)
     ball_count_array = [0]*(max_ball_expected+1)
+
+    # now build X and Y. X will be the width of data presented,
+    # and Y will be the actual value. Note that Y will be +1 later
+    # than X.
+
+    # Note that our_depth[0] is the width of the game
     
-    tmp = len(ts_array)
-    idx = 0
+    ts_array_len = len(ts_array)
+    idx_x = 0
+    idx_y = idx_x + our_depth[0]
+    
     X = []
     Y = []
 
-    print(tmp, our_depth)
-    print(f"436: (len(ts_array)) tmp = {tmp}, our_depth[0] = {our_depth[0]}")
-    
-    for i in range(0, tmp-our_depth[0]):
+    while idx_y < ts_array_len:
         x = []
         y = []
-        for j in range(0, our_depth[0]):
-            x.append(ts_array[j+idx])
-        y.append(ts_array[idx+our_depth[0]])
+        for j in range(idx_x, idx_x+our_depth[0]):
+            x.append(ts_array[j])
+        y.append(ts_array[idx_y])
 
+        # track ball usage
+        ball_count_array[ts_array[idx_y]] += 1
+        
         # now that x,y arrays are built, add them to X,Y
         X.append(x)
         Y.append(y)
         
         # onward
-        idx += 1
+        idx_x += 1
+        idx_y += 1
 
-    # display ball_count_array
+    # display our handy work
+    print(f"Max Calls to Train: {len(X)}")
     #for idx,z in enumerate(ball_count_array):
         #print(f"{idx}, {z}")
-
-    #print(len(X))
+    #print(X)
+    #print(Y)
     #exit(0)
     
     # initialize our model
@@ -464,7 +461,8 @@ if __name__ == "__main__":
 
     model_name = f"models/second-to-last-{cmd.our_game}-{my_col}.model"
     print(f"Model Name: {model_name}")
-    
+
+    # zero old .model if necessary
     if cmd.is_zero(sys.argv):
         if os.path.exists(model_name):
             print(f"Removing model {model_name}")
@@ -478,17 +476,15 @@ if __name__ == "__main__":
         exit(0)
     #frame = inspect.currentframe()
     #print(f"{frame.f_lineno}: len(Y) = {len(Y)}")
-    #print(f"479: len(X) = {len(X)}")
-    #print(f"480: my_cnt = {my_cnt}")
     #exit(0)
-    
+
     # what is the top of Y that we can consider ?
-    cnt = len(Y)
-    if my_cnt_flag:
-        cnt += my_cnt
-        print(f"Number of elements in Y forced (cnt): {cnt}")
+    top = len(Y)
+    if my_prev_play_flag:
+        top += my_prev_play
+        print(f"Number of elements in Y forced (top): {top}")
     else:
-        print(f"Number of elements in Y (cnt): {cnt}")        
+        print(f"Number of elements in Y (top): {top}")        
 
     if reloaded_flag:
         # prepare to train for another 100 epochs
@@ -500,18 +496,14 @@ if __name__ == "__main__":
         # number of epochs to execute
         epochs = 101
         old_epochs = 0
-
     old_loss = 1.0
-
     first_save_flag = False
-
     print(f"test_mode = {test_mode}, old_epochs = {old_epochs}, epochs = {epochs}")
     #exit(0)
 
+    # train on 1 less play if we want to check
     if is_check:
-        top = cnt - 2
-    else:
-        top = cnt - 1
+        top -= 1
         
     for epoch in range(old_epochs,epochs):
 
@@ -519,24 +511,22 @@ if __name__ == "__main__":
         if test_mode:
             continue
 
-        if epoch == 200:
+        if False and (epoch == 200):
             learning_rate /= 10.0
             set_lr(model,learning_rate)
-        
-        idx = top + our_depth[1]
-        while idx < top:
-            # show our handywork
-            #print(X[0],Y[0])
-            y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball_expected)
-            #print(y_oh)
-            x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball_expected)
 
-            # only do once
-            if epoch == old_epochs:
-                for z in X[idx]:
-                    ball_count_array[z] += 1
-                
-            #print(x_oh)
+        # our_depth[1] is how far back we want to start training
+        if our_depth[1] != 0:
+            # train from this depth
+            idx = top + our_depth[1]
+        else:
+            # train from beginning
+            idx = 0
+            
+        while idx < top:
+            # get elements
+            y_oh = squ.one_hot_no_squish_max_ball(Y[idx],max_ball_expected)
+            x_oh = squ.one_hot_no_squish_max_ball(X[idx],max_ball_expected)
             
             # convert to tensors
             y_oh_t = torch.tensor(y_oh, dtype=torch.float32, device=device)
@@ -544,10 +534,7 @@ if __name__ == "__main__":
             
             # train
             loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
-            if False and (idx >= (cnt-30)):
-                # train a bit more on the last one
-                for tmp in (1,2,3):
-                    loss = train(model, x_oh_t, y_oh_t, loss_fn, optimizer)
+
             # onward
             idx += 1
 
@@ -574,6 +561,6 @@ if __name__ == "__main__":
         
     # now lets test
     model.eval()
-    test_and_display(model, cnt, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball_expected)
+    test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers, max_ball_expected)
 
     # finis

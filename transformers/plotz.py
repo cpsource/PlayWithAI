@@ -127,7 +127,8 @@ if __name__ == "__main__":
         results = pickle.load(f)
     f.close()
     # show
-    #print(results)
+    print(results)
+    exit(0)
 
     x = extract_col(results,col_x)
     y = extract_col(results,col_y)
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     #plt.show()
 
     # check stddev of col 1 againt unique col 5
-    tst_col = 5
+    tst_col = 8
     col_one = 1
     uniques = extract_col_unique(results,tst_col)
     sums = np.zeros(len(uniques), dtype=np.float32)
