@@ -158,7 +158,7 @@ def is_test(array):
 
 def is_zero(array):
     for item in array:
-        if '--zero' == item or '-z' == item:
+        if '--zero' == item or '-z' == item or '--erase' == item:
             return True
     return False
 

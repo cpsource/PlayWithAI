@@ -216,8 +216,8 @@ def initialize_model(k1,k2,k3,k4):
     # we can also try lr=0.001, momentum=0.9
     #optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9) # or -2 ???
     print(f"creating optimizer with lr = {learning_rate}")
-    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
-    optimizer = torch.optim.Adam(model.parameters(),lr=learning_rate)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate) # or -2 ???
+    #optimizer = torch.optim.Adam(model.parameters(),lr=learning_rate)
 
     #lr_scheduler = ReduceLROnPlateau(optimizer, patience=5, verbose=True)
 
@@ -330,24 +330,37 @@ def softmax(tensor):
   # Return the softmaxed tensor.
   return softmaxed_tensor
 
+# a useful display bit
+def display_last_ten(array,m):
+    n = array[-10:]
+    mylen = len(array)
+    print(f"display_last_ten: Len: {mylen}, Prev: {m}")
+    for idx, val in enumerate(n):
+        print(f"idx = {idx+mylen-10}, val = {val}")
+    return
+
 def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, winning_numbers,max_ball_expected, my_prev_play):
     ball = 0
+
+    display_last_ten(ts_array,my_prev_play)
     
     # lets test
     idx = len(ts_array) + my_prev_play
     print(f"my_prev_play = {my_prev_play}, idx = {idx}, len(ts_array) = {len(ts_array)}")
     if is_check is True:
-        print(f"idx = {idx}")
         ball = ts_array[idx]
         print(f"Testing for ball in ts_array[{idx}] = {ball}")
         x = []
         Xtmp = []
         for j in range(idx-our_depth[0], idx):
             x.append(ts_array[j])
+
+        display_last_ten(x,my_prev_play)
+        
         Xtmp.append(x)
         x_oh = squ.one_hot_no_squish_max_ball(Xtmp[0],max_ball_expected)        
 
-        #print(f"{len(Xtmp)}, Xtmp = {Xtmp}")
+        #print(f"{x_oh}")
         #exit(0)
 
     else:
@@ -381,15 +394,19 @@ def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, wi
     y_hat_detached = y_hat.detach()
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
 
+    #print(f"a = {a}")
+    
     # prepare model's guess for display and analysis
     indices = np.argsort(a)
     indices_reversed = indices[::-1]
+
+    #print(f"indices = {indices}")
     print(f"Balls in descending probability: {indices_reversed}")
 
     # find index of ball in indices_reversed. It shows how far off we are
-    error_distance = operator.indexOf(indices_reversed,ball)
+    error_distance = operator.indexOf(indices_reversed,ball) - 1
     print(f"Error Distance: {error_distance+1} for ball {ball}")
-    
+
     #total_probability = 0.0
     #for i in (0,1,2,3,4,5,6,7,8,9):
         #total_probability += a[indices_reversed[i]]
@@ -401,7 +418,31 @@ def test_and_display(model, top, X, Y, ts_array, total_worse_count, is_check, wi
 
     # stats
     print(f"Total Worse Count: {total_worse_count}")
-    
+
+    #
+    # So, lets look into the future
+    #
+    print("Now looking into the future for column {my_col}")
+
+    x = []
+    Xtmp = []
+    idx = len(ts_array)
+    for j in range(idx-our_depth[0], idx):
+        x.append(ts_array[j])
+    #display_last_ten(x,my_prev_play)
+    Xtmp.append(x)
+    x_oh = squ.one_hot_no_squish_max_ball(Xtmp[0],max_ball_expected)        
+    # convert to tensors
+    x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
+    # run prepared data through the model
+    y_hat = model(x_oh_t).cpu()
+    y_hat_detached = y_hat.detach()
+    a = y_hat_detached_np = y_hat_detached.numpy()[0]
+    # prepare model's guess for display and analysis
+    indices = np.argsort(a)
+    indices_reversed = indices[::-1]
+    print(f"Future Balls for column {my_col} in descending probability: {indices_reversed}")
+
 def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
     print(f"Saving Model {model_name}, epoch = {epoch}")
     torch.save({
@@ -435,9 +476,8 @@ if __name__ == "__main__":
     ts_array = read_file_line_by_line_readline(ifile,my_col)
     #print(max(ts_array))
     #print(type(ts_array))
-    #print(ts_array)
-    #print(len)
-    #exit(0)
+    print(ts_array)
+    print(len(ts_array))
     
     if False:
         # stop at 400 epochs
@@ -533,7 +573,7 @@ if __name__ == "__main__":
     #exit(0)
 
     # train on 1 less play if we want to check
-    if is_check:
+    if is_check is True:
         top -= 2
         
     for epoch in range(old_epochs,epochs):
