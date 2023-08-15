@@ -13,8 +13,8 @@ def set_prev_play(array):
             flag = True
             continue
     if flag:
-        if my_cnt >= 0:
-            print("Error: must be less than 0")
+        if my_cnt > 0:
+            print("Error: must be less than 1")
             exit(0)
         print(f"Prev Play set to {my_cnt}")
     return flag, my_cnt
@@ -156,17 +156,26 @@ def is_test(array):
             return True
     return False
 
+def is_initial(array):
+    '''
+    Return True if we have a command line switch --initial
+    '''
+    for item in array:
+        if '--initial' == item:
+            return True
+    return False
+
 def is_zero(array):
     for item in array:
         if '--zero' == item or '-z' == item or '--erase' == item:
             return True
     return False
 
-def is_check_mode(array):
-    for item in array:
-        if '--check' == item or '-ch' == item:
-            return True
-    return False
+#def is_check_mode(array):
+#    for item in array:
+#        if '--check' == item or '-ch' == item:
+#            return True
+#    return False
 
 def give_help(array):
     '''
@@ -186,6 +195,7 @@ def give_help(array):
             print("  --win [a,b,c,d,e,f] - return winning numbers array")
             print("  --check - run in check mode")
             print("  --prev-play n - set prev play, 0,-1,-2,...")
+            print("  --initial")
             exit(0)
     return
 
