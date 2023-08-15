@@ -36,6 +36,18 @@ def set_cnt(array):
         print(f"My Cnt set to {my_cnt}")
     return flag, my_cnt
 
+def get_seed(array):
+    seed = 0
+    flag = False
+    for item in array:
+        if flag:
+            seed = int(item)
+            break
+        if '--seed' == item:
+            flag = True
+            continue
+    return seed
+
 def set_my_col(array):
     res = None
     flag = False
@@ -167,7 +179,13 @@ def is_initial(array):
 
 def is_zero(array):
     for item in array:
-        if '--zero' == item or '-z' == item or '--erase' == item:
+        if '--zero' == item or '-z' == item:
+            return True
+    return False
+
+def is_erase(array):
+    for item in array:
+        if '--erase' == item:
             return True
     return False
 
@@ -196,6 +214,7 @@ def give_help(array):
             print("  --check - run in check mode")
             print("  --prev-play n - set prev play, 0,-1,-2,...")
             print("  --initial")
+            print("  --seed N")
             exit(0)
     return
 

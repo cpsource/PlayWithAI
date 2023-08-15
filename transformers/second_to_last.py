@@ -40,8 +40,6 @@ import operator
 import squish as squ
 import inspect
 
-# reloaded from disk
-reloaded_flag = False
 # test only ( no training )
 test_mode = False
 # what's our model name
@@ -73,6 +71,8 @@ our_depth = [30, 500, 2100, 630, 189, 40]
 max_ball_expected = None
 # use initial model load
 use_initial_flag = False
+# restore type
+restore_type = None
 
 device = (
     "cuda"
@@ -242,21 +242,22 @@ def attempt_reload():
     global loss
     global model_name
     global model_name_initial
-    global reloaded_flag
     global learning_rate
 
-    reloaded_flag = False
+    restore_type = 0 # 0 - nothing restored, 1 - model restored, 2 - initial restored
+    
     epoch = 0
     m = None
     
     if os.path.exists(model_name):
         m = model_name
+        restore_type = 1
     else:
         if os.path.exists(model_name_initial):
             m = model_name_initial
+            restore_type = 2
 
     if m is not None:
-        reloaded_flag = True
         print(f"Reloading pre-trained model {m}")
         checkpoint = torch.load(m)
         model.load_state_dict(checkpoint['model_state_dict'])
@@ -271,7 +272,7 @@ def attempt_reload():
         #model.train()
         
     # done
-    return
+    return restore_type
 
 # Training Loop
 def train(model, X, y, loss_fn, optimizer):
@@ -372,7 +373,7 @@ def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, m
     for j in range(idx-our_depth[0], idx):
         x.append(ts_array[j])
 
-    display_last_ten(x,my_prev_play)
+    #display_last_ten(x,my_prev_play)
 
     # one hot
     x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)        
@@ -439,6 +440,7 @@ def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
     
 if __name__ == "__main__":
     cmd.give_help(sys.argv)
+    torch.cuda.manual_seed_all(cmd.get_seed(sys.argv))
     use_initial_flag = cmd.is_initial(sys.argv)
     our_depth = cmd.get_our_depth(sys.argv)
     #is_check = cmd.is_check_mode(sys.argv)
@@ -460,7 +462,7 @@ if __name__ == "__main__":
     ts_array = read_file_line_by_line_readline(ifile,my_col)
     #print(max(ts_array))
     #print(type(ts_array))
-    print(len(ts_array),ts_array)
+    #print(len(ts_array),ts_array)
     
     if False:
         # stop at 400 epochs
@@ -477,15 +479,21 @@ if __name__ == "__main__":
     model_name = f"models/second-to-last-{cmd.our_game}-{my_col}.model"
     print(f"Model Name: {model_name}")
     model_name_initial = f"models/second-to-last-{cmd.our_game}-{my_col}-initial.model"
-
+    print(f"Model Name Initial: {model_name_initial}")
+    
     # zero old .model if necessary
     if cmd.is_zero(sys.argv):
         if os.path.exists(model_name):
             print(f"Removing model {model_name}")
             os.unlink(model_name)
+    # erase old initial if necessary
+    if cmd.is_erase(sys.argv):
+        if os.path.exists(model_name_initial):
+            print(f"Removing model {model_name_initial}")
+            os.unlink(model_name_initial)
 
-    # attempt to reload pre-trained model from disk
-    attempt_reload()
+    # attempt reload of pre-trained model or initial model
+    restore_type = attempt_reload()
 
     # what is the top of Y that we can consider ?
     max_ts_array = top = len(ts_array)
@@ -496,7 +504,7 @@ if __name__ == "__main__":
         # assume my_prev_play is 0
         print(f"Number of elements in Y (top): {top}")        
     # Note: we are going to scan to < top
-    if reloaded_flag:
+    if restore_type == 1:
         # prepare to train for another 100 epochs
         model.train()
         old_epochs = epoch + 1
@@ -510,6 +518,11 @@ if __name__ == "__main__":
     first_save_flag = False
     print(f"test_mode = {test_mode}, old_epochs = {old_epochs}, epochs = {epochs}")
     #exit(0)
+
+    if restore_type == 0:
+        # now save initial
+        loss = 0
+        save_model(epoch,model,optimizer,loss,learning_rate,model_name_initial)
 
     for epoch in range(old_epochs,epochs):
 
@@ -532,25 +545,25 @@ if __name__ == "__main__":
             idx = max_ball_expected + 1
 
         # only do once
-        if epoch == old_epoch:
+        if epoch == old_epochs:
             # track ball usage
             for i in range(idx - (max_ball_expected + 1),top):
                 ball_count_array[ts_array[i]] += 1
 
         # Note: we play to the ball just under top
         while idx < top:
-            #ball = ts_array[idx]
-            print(f"Testing for ball in ts_array[{idx}] = {ball}")
+            ball = ts_array[idx]
+            #print(f"Testing for ball in ts_array[{idx}] = {ball}")
             x = []
             for j in range(idx-our_depth[0], idx):
                 x.append(ts_array[j])
 
-            if idx == (top-1):
+            if False and (idx == (top-1)):
                 display_last_ten(x,my_prev_play)
 
             # one hot
             x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
-            y_oh = squ.one_hot_no_squish_max_ball(ts_array[idx],max_ball_expected)                    
+            y_oh = squ.one_hot_no_squish_max_ball([ts_array[idx]],max_ball_expected)                    
 
             # convert to tensors
             x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
