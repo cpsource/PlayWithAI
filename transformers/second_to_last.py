@@ -385,7 +385,7 @@ def get_x(ts_array,top,my_prev_play):
     return ball, x
 
 def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
-
+    model.eval()
     # get ball and x
     ball , x = get_x(ts_array,top,my_prev_play)
     display_last_ten(x)
