@@ -82,7 +82,7 @@ device = (
     else "cpu"
     )
 # runs slower with cuda
-#device = "cpu"
+device = "cpu"
 print(f"Device: {device}")
 
 # set print options
@@ -358,87 +358,82 @@ def softmax(tensor):
   return softmaxed_tensor
 
 # a useful display bit
-def display_last_ten(array,m):
+def display_last_ten(array):
     n = array[-10:]
     mylen = len(array)
-    print(f"display_last_ten: Len: {mylen}, Prev: {m}")
+    print(f"display_last_ten: Len: {mylen}")
     for idx, val in enumerate(n):
         print(f"idx = {idx+mylen-10}, val = {val}")
     return
 
-def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
-    ball = 0
-
-    #display_last_ten(ts_array,my_prev_play)
-
+def get_x(ts_array,top,my_prev_play):
+    global our_debth
+    
     if my_prev_play == 0:
         # run top-1 through model. We don't know the last ball, so just display results
         ball = 0
     else:
-        # run top-1 through model, and get the ball from top
-        ball = ts_array[top]
-        
-    # lets test
-    print(f"Testing for ball = {ball}")
-
+        # get the ball from top
+        ball = ts_array[top+my_prev_play]
     # get x
     x = []
-    idx = top -1
-    for j in range(idx-our_depth[0], idx):
+    idx = top + my_prev_play
+    for j in range(idx-our_depth[0]+1, idx+1):
         x.append(ts_array[j])
 
-    #display_last_ten(x,my_prev_play)
+    # return
+    return ball, x
 
+def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
+
+    # get ball and x
+    ball , x = get_x(ts_array,top,my_prev_play)
+    display_last_ten(x)
     # one hot
-    x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)        
+    x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
+    print(x,x_oh)
     # convert to tensors
     x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
-
     # run prepared data through the model
     y_hat = model(x_oh_t).cpu()
+    print(y_hat)
     y_hat_detached = y_hat.detach()
-    a = y_hat_detached_np = y_hat_detached.numpy()[0]
-
-    #print(f"a = {a}")
-    
+    b = y_hat_detached_np = y_hat_detached.numpy()[0]
     # prepare model's guess for display and analysis
-    indices = np.argsort(a)
+    indices = np.argsort(b)
+    print(indices)
     indices_reversed = indices[::-1]
-
-    #print(f"indices = {indices}")
+    print(indices_reversed)
     print(f"Balls in descending probability: {indices_reversed}")
-
     # find index of ball in indices_reversed. It shows how far off we are
     error_distance = operator.indexOf(indices_reversed,ball) - 1
     print(f"Error Distance: {error_distance+1} for ball {ball}")
-
     # stats
     print(f"Total Worse Count: {total_worse_count}")
 
-    exit(0)
-    
     #
     # So, lets look into the future
     #
-    print("Now looking into the future for column {my_col}")
+    print(f"Now looking into the future for column {my_col}")
 
-    x = []
-    Xtmp = []
-    idx = len(ts_array)
-    for j in range(idx-our_depth[0], idx):
-        x.append(ts_array[j])
-    #display_last_ten(x,my_prev_play)
-    Xtmp.append(x)
-    x_oh = squ.one_hot_no_squish_max_ball(Xtmp[0],max_ball_expected)        
+    # get ball and x
+    ball , x = get_x(ts_array,len(ts_array)-1,0)
+    display_last_ten(x)
+       
+    x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
+    print(x,x_oh)
     # convert to tensors
     x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
     # run prepared data through the model
     y_hat = model(x_oh_t).cpu()
+    print(y_hat)
     y_hat_detached = y_hat.detach()
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
     # prepare model's guess for display and analysis
     indices = np.argsort(a)
+    print(indices)
     indices_reversed = indices[::-1]
+    print(indices_reversed)
     print(f"Future Balls for column {my_col} in descending probability: {indices_reversed}")
 
 def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
@@ -481,7 +476,7 @@ if __name__ == "__main__":
     if False:
         # stop at 400 epochs
         if not test_mode and epoch >= 400:
-            print("At 400 epoch limit, exiting")
+            print("At 400 epoch limit, exiting ...")
             exit(0)
 
     # muck with our_depth of the form
@@ -584,18 +579,12 @@ if __name__ == "__main__":
 
         # Note: we play to the ball just under top
         while idx < top:
-            ball = ts_array[idx]
-            #print(f"Testing for ball in ts_array[{idx}] = {ball}")
-            x = []
-            for j in range(idx-our_depth[0], idx):
-                x.append(ts_array[j])
 
-            if False and (idx == (top-1)):
-                display_last_ten(x,my_prev_play)
+            ball , x = get_x(ts_array,idx,my_prev_play)
 
             # one hot
             x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
-            y_oh = squ.one_hot_no_squish_max_ball([ts_array[idx]],max_ball_expected)                    
+            y_oh = squ.one_hot_no_squish_max_ball([ball],max_ball_expected)                    
 
             # convert to tensors
             x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)

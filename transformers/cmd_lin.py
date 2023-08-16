@@ -20,6 +20,9 @@ def set_prev_play(array):
     return flag, my_cnt
 
 def set_cnt(array):
+    print(f"--cnt no longer supported. Exiting ...")
+    exit(0)
+    
     my_cnt = 0
     flag = False
     for item in array:
