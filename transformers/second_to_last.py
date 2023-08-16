@@ -65,8 +65,8 @@ my_col = 6
 # force a cnt
 my_prev_play_flag = False
 my_prev_play = 0
-# our depth array = [our-depth , our-back, model-sizes...]
-our_depth = [30, 500, 2100, 630, 189, 40]
+# our depth array = [our-width , our-back, model-sizes in cuda]
+our_depth = None # [30, -500, 2100, 630, 189, 40]
 # maximum ball in play
 max_ball_expected = None
 # use initial model load
@@ -155,6 +155,11 @@ def read_file_line_by_line_readline(filename, my_col):
         for i in range(1449):
             f.readline()
             line_number += 1
+    # skip some at front from older games
+    if cmd.our_game == 'pb':
+        for i in range(586):
+            f.readline()
+            line_number += 1
 
     while True:
       line = f.readline()
@@ -214,7 +219,7 @@ def initialize_model(k1,k2,k3,k4):
     global optimizer
     global loss_fn
 
-    if my_col == 6 and cmd.our_game == 'mm':
+    if False and my_col == 6 and cmd.our_game == 'mm':
         # make an instance of our network on device
         k1 = 2106
         k2 = 630
@@ -479,11 +484,29 @@ if __name__ == "__main__":
             print("At 400 epoch limit, exiting")
             exit(0)
 
+    # muck with our_depth of the form
+    #  width, depth, net1, net2, net3, net4
+    if our_depth is None:
+        our_depth = [0]*5
+    else:
+        while len(our_depth) < 5:
+            our_depth.append(0)
+    if our_depth[0] == 0:
+        our_depth[0] = 30
+    if our_depth[1] == 0:
+        our_depth[1] = -150
+    if our_depth[2] == 0:
+        our_depth[2] = int((max_ball_expected+1)*our_depth[0]*0.3)
+    if our_depth[3] == 0:
+        our_depth[3] = int(our_depth[2]*0.3)
+    if our_depth[4] == 0:
+        our_depth[4] = max_ball_expected
+
     # track number of each ball (strange way to get an array of 0's)
     ball_count_array = [0]*(max_ball_expected+1)
 
     # initialize our model
-    initialize_model((max_ball_expected+1)*our_depth[0], our_depth[3], our_depth[4], (max_ball_expected+1))
+    initialize_model((max_ball_expected+1)*our_depth[0], our_depth[2], our_depth[3], (max_ball_expected+1))
 
     model_name = f"models/second-to-last-{cmd.our_game}-{my_col}.model"
     print(f"Model Name: {model_name}")

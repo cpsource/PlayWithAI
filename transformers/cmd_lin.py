@@ -69,7 +69,7 @@ def set_my_col(array):
     return res
 
 # set a depth
-#our_depth = [30,our-back,2100,630,189,40]
+#our_depth = [width,our-back,2100,630,189,40]
 def get_our_depth(array):
     tmp = None
     res = []
