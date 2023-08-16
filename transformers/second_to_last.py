@@ -366,18 +366,22 @@ def display_last_ten(array):
         print(f"idx = {idx+mylen-10}, val = {val}")
     return
 
-def get_x(ts_array,top,my_prev_play):
+def get_x(ts_array, idx, my_prev_play):
     global our_debth
     
     if my_prev_play == 0:
         # run top-1 through model. We don't know the last ball, so just display results
         ball = 0
+        idx = len(ts_array) - 1
     else:
         # get the ball from top
-        ball = ts_array[top+my_prev_play]
+        idx = len(ts_array) + my_prev_play
+        ball = ts_array[idx]
+        idx -= 1
     # get x
+
+    #print(f"top = {top}, len(ts_array) = {len(ts_array)}")
     x = []
-    idx = top + my_prev_play
     for j in range(idx-our_depth[0]+1, idx+1):
         x.append(ts_array[j])
 
@@ -386,30 +390,34 @@ def get_x(ts_array,top,my_prev_play):
 
 def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
     model.eval()
-    # get ball and x
-    ball , x = get_x(ts_array,top,my_prev_play)
-    display_last_ten(x)
-    # one hot
-    x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
-    print(x,x_oh)
-    # convert to tensors
-    x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
-    # run prepared data through the model
-    y_hat = model(x_oh_t).cpu()
-    print(y_hat)
-    y_hat_detached = y_hat.detach()
-    b = y_hat_detached_np = y_hat_detached.numpy()[0]
-    # prepare model's guess for display and analysis
-    indices = np.argsort(b)
-    print(indices)
-    indices_reversed = indices[::-1]
-    print(indices_reversed)
-    print(f"Balls in descending probability: {indices_reversed}")
-    # find index of ball in indices_reversed. It shows how far off we are
-    error_distance = operator.indexOf(indices_reversed,ball) - 1
-    print(f"Error Distance: {error_distance+1} for ball {ball}")
-    # stats
-    print(f"Total Worse Count: {total_worse_count}")
+
+    if my_prev_play < 0:
+        # get ball and x
+        ball , x = get_x(ts_array, 0, my_prev_play)
+        display_last_ten(x)
+        print(ball,top,my_prev_play)
+        
+        # one hot
+        x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
+        #print(x,x_oh)
+        # convert to tensors
+        x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
+        # run prepared data through the model
+        y_hat = model(x_oh_t).cpu()
+        #print(y_hat)
+        y_hat_detached = y_hat.detach()
+        b = y_hat_detached_np = y_hat_detached.numpy()[0]
+        # prepare model's guess for display and analysis
+        indices = np.argsort(b)
+        #print(indices)
+        indices_reversed = indices[::-1]
+        print(indices_reversed)
+        print(f"Balls in descending probability: {indices_reversed}")
+        # find index of ball in indices_reversed. It shows how far off we are
+        error_distance = operator.indexOf(indices_reversed,ball) - 1
+        print(f"Error Distance: {error_distance+1} for ball {ball}")
+        # stats
+        print(f"Total Worse Count: {total_worse_count}")
 
     #
     # So, lets look into the future
@@ -417,21 +425,21 @@ def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, m
     print(f"Now looking into the future for column {my_col}")
 
     # get ball and x
-    ball , x = get_x(ts_array,len(ts_array)-1,0)
+    ball , x = get_x(ts_array,0,0)
     display_last_ten(x)
        
-    x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
-    print(x,x_oh)
+    x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
+    #print(x,x_oh)
     # convert to tensors
     x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
     # run prepared data through the model
     y_hat = model(x_oh_t).cpu()
-    print(y_hat)
+    #print(y_hat)
     y_hat_detached = y_hat.detach()
     a = y_hat_detached_np = y_hat_detached.numpy()[0]
     # prepare model's guess for display and analysis
     indices = np.argsort(a)
-    print(indices)
+    #print(indices)
     indices_reversed = indices[::-1]
     print(indices_reversed)
     print(f"Future Balls for column {my_col} in descending probability: {indices_reversed}")
@@ -578,13 +586,13 @@ if __name__ == "__main__":
                 ball_count_array[ts_array[i]] += 1
 
         # Note: we play to the ball just under top
-        while idx < top:
+        while idx <= top:
 
-            ball , x = get_x(ts_array,idx,my_prev_play)
+            ball , x = get_x(ts_array, idx, my_prev_play)
 
             # one hot
-            x_oh = squ.one_hot_no_squish_max_ball(x,max_ball_expected)
-            y_oh = squ.one_hot_no_squish_max_ball([ball],max_ball_expected)                    
+            x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
+            y_oh = squ.one_hot_no_squish_max_ball([ball], ball, max_ball_expected)                    
 
             # convert to tensors
             x_oh_t = torch.tensor(x_oh, dtype=torch.float32, device=device)
