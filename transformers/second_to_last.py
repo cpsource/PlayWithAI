@@ -105,8 +105,12 @@ def extract_column(data,col):
     The second to last column from the data.
   """
 
+  #print(data)
+  
   columns = data.split(",")
 
+  #print(columns,col)
+  
   val = columns[col]
 
   #print(col, val, columns)
@@ -160,18 +164,22 @@ def read_file_line_by_line_readline(filename, my_col):
           line_number += 1
           continue
 
-      # we only use in sorted order, so get all balls
-      # then sort them
+      if my_col < 6:
+          # we only use in sorted order, so get all balls
+          # then sort them
+
+          m = []
+          m.append(extract_column(line,adjust_col[1]))
+          m.append(extract_column(line,adjust_col[2]))
+          m.append(extract_column(line,adjust_col[3]))
+          m.append(extract_column(line,adjust_col[4]))
+          m.append(extract_column(line,adjust_col[5]))
+          m.sort()
       
-      m = []
-      m.append(extract_column(line,adjust_col[1]))
-      m.append(extract_column(line,adjust_col[2]))
-      m.append(extract_column(line,adjust_col[3]))
-      m.append(extract_column(line,adjust_col[4]))
-      m.append(extract_column(line,adjust_col[5]))
-      m.sort()
-      
-      x = m[my_col-1]
+          x = m[my_col-1]
+      else:
+          # get col 6 straight-away
+          x = extract_column(line,adjust_col[6])
 
       if x <= max_ball_expected:
           ts_array.append(x)
@@ -205,12 +213,13 @@ def initialize_model(k1,k2,k3,k4):
     global model
     global optimizer
     global loss_fn
-    
-    # make an instance of our network on device
-    #k1 = 2100
-    #k2 = 630
-    #k3 = 189
-    #k4 = 40
+
+    if my_col == 6 and cmd.our_game == 'mm':
+        # make an instance of our network on device
+        k1 = 2106
+        k2 = 630
+        k3 = 189
+        k4 = 26
 
     print(f"Initializing Model with {k1} {k2} {k3} {k4}")
     
