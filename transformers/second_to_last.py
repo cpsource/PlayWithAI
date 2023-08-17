@@ -483,9 +483,9 @@ if __name__ == "__main__":
     if our_depth[1] == 0:
         our_depth[1] = -150
     if our_depth[2] == 0:
-        our_depth[2] = int((max_ball_expected+1)*our_depth[0]*0.3)
+        our_depth[2] = int((max_ball_expected+1)*our_depth[0]*0.25)
     if our_depth[3] == 0:
-        our_depth[3] = int(our_depth[2]*0.3)
+        our_depth[3] = int(our_depth[2]*0.25)
     if our_depth[4] == 0:
         our_depth[4] = max_ball_expected
 
@@ -566,7 +566,7 @@ if __name__ == "__main__":
                 ball_count_array[ts_array[i]] += 1
 
         # Note: we play to the ball just under top
-        while idx <= idxer.idxer_get_top():
+        while idx < idxer.idxer_get_top():
 
             ball , x = idxer.get_x(ts_array, idx)
 
