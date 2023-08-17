@@ -371,9 +371,10 @@ def display_last_ten(array):
 def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
     model.eval()
 
-    if my_prev_play < 0:
+    if False and my_prev_play < 0:
         # get ball and x
-        ball , x = idxer.get_x(ts_array, len(ts_array)-1)
+        ball , x = idxer.get_x(ts_array, idxer.idxer_get_top())
+        print(ball)
         display_last_ten(x)
         
         # one hot
@@ -404,7 +405,8 @@ def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, m
     print(f"Now looking into the future for column {my_col}")
 
     # get ball and x
-    ball , x = idxer.get_x(ts_array,len(ts_array))
+    ball , x = idxer.get_x(ts_array,idxer.idxer_get_top())
+    print(f"Ball: {ball}")
     display_last_ten(x)
        
     x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
@@ -420,8 +422,11 @@ def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, m
     indices = np.argsort(a)
     #print(indices)
     indices_reversed = indices[::-1]
-    print(indices_reversed)
+    #print(indices_reversed)
     print(f"Future Balls for column {my_col} in descending probability: {indices_reversed}")
+    # find index of ball in indices_reversed. It shows how far off we are
+    error_distance = operator.indexOf(indices_reversed,ball) - 1
+    print(f"Error Distance: {error_distance+1} for ball {ball}")
 
 def save_model(epoch,model,optimizer,loss,learning_rate,model_name):
     print(f"Saving Model {model_name}, epoch = {epoch}")
@@ -485,7 +490,7 @@ if __name__ == "__main__":
         our_depth[4] = max_ball_expected
 
     # init idxer
-    idxer.idxer_init(our_depth[0],len(ts_array), our_depth[1])
+    idxer.idxer_init(our_depth[0],len(ts_array), our_depth[1], my_prev_play)
     
     # track number of each ball (strange way to get an array of 0's)
     ball_count_array = [0]*(max_ball_expected+1)
@@ -561,7 +566,7 @@ if __name__ == "__main__":
                 ball_count_array[ts_array[i]] += 1
 
         # Note: we play to the ball just under top
-        while idx <= top:
+        while idx <= idxer.idxer_get_top():
 
             ball , x = idxer.get_x(ts_array, idx)
 
