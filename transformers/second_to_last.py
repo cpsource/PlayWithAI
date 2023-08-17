@@ -39,6 +39,7 @@ import cmd_lin as cmd
 import operator
 import squish as squ
 import inspect
+import idxer
 
 # test only ( no training )
 test_mode = False
@@ -366,36 +367,14 @@ def display_last_ten(array):
         print(f"idx = {idx+mylen-10}, val = {val}")
     return
 
-def get_x(ts_array, idx, my_prev_play):
-    global our_debth
-    
-    if my_prev_play == 0:
-        # run top-1 through model. We don't know the last ball, so just display results
-        ball = 0
-        idx = len(ts_array) - 1
-    else:
-        # get the ball from top
-        idx = len(ts_array) + my_prev_play
-        ball = ts_array[idx]
-        idx -= 1
-    # get x
-
-    #print(f"top = {top}, len(ts_array) = {len(ts_array)}")
-    x = []
-    for j in range(idx-our_depth[0]+1, idx+1):
-        x.append(ts_array[j])
-
-    # return
-    return ball, x
 
 def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, max_ball_expected, my_prev_play):
     model.eval()
 
     if my_prev_play < 0:
         # get ball and x
-        ball , x = get_x(ts_array, 0, my_prev_play)
+        ball , x = idxer.get_x(ts_array, len(ts_array)-1)
         display_last_ten(x)
-        print(ball,top,my_prev_play)
         
         # one hot
         x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
@@ -425,7 +404,7 @@ def test_and_display(model, top, ts_array, total_worse_count, winning_numbers, m
     print(f"Now looking into the future for column {my_col}")
 
     # get ball and x
-    ball , x = get_x(ts_array,0,0)
+    ball , x = idxer.get_x(ts_array,len(ts_array))
     display_last_ten(x)
        
     x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
@@ -505,6 +484,9 @@ if __name__ == "__main__":
     if our_depth[4] == 0:
         our_depth[4] = max_ball_expected
 
+    # init idxer
+    idxer.idxer_init(our_depth[0],len(ts_array), our_depth[1])
+    
     # track number of each ball (strange way to get an array of 0's)
     ball_count_array = [0]*(max_ball_expected+1)
 
@@ -569,15 +551,8 @@ if __name__ == "__main__":
             learning_rate /= 10.0
             set_lr(model,learning_rate)
 
-        # our_depth[1] is how far back we want to start training
-        if our_depth[1] != 0:
-            # train from this depth, but only if it makes sense
-            idx = top + our_depth[1]
-            if idx < (max_ball_expected + 1):
-                idx = max_ball_expected + 1                
-        else:
-            # train from beginning
-            idx = max_ball_expected + 1
+        # get our scan start point
+        idx = idxer.idxer_get_lowest()
 
         # only do once
         if epoch == old_epochs:
@@ -588,7 +563,7 @@ if __name__ == "__main__":
         # Note: we play to the ball just under top
         while idx <= top:
 
-            ball , x = get_x(ts_array, idx, my_prev_play)
+            ball , x = idxer.get_x(ts_array, idx)
 
             # one hot
             x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
