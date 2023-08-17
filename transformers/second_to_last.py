@@ -40,6 +40,7 @@ import operator
 import squish as squ
 import inspect
 import idxer
+import random
 
 # test only ( no training )
 test_mode = False
@@ -212,7 +213,7 @@ def scale_tensor(tensor):
     
     return scaled_tensor
 
-import my_class_1 as net
+import my_class as net
 
 def initialize_model(k1,k2,k3,k4):
     global our_depth
@@ -464,6 +465,7 @@ if __name__ == "__main__":
     #print(max(ts_array))
     #print(type(ts_array))
     #print(len(ts_array),ts_array)
+
     
     if False:
         # stop at 400 epochs
@@ -570,11 +572,18 @@ if __name__ == "__main__":
             for i in range(idx - (max_ball_expected + 1),top):
                 ball_count_array[ts_array[i]] += 1
 
+        ###
+        pick_list = list(range(idx,idxer.idxer_get_top()))
+        
         # Note: we play to the ball just under top
         while idx < idxer.idxer_get_top():
 
+            tmptmp = random.randint(0,len(pick_list)-1)
+            #print(f"tmptmp = {tmptmp}, {len(pick_list)}")
+            tmpidx = pick_list[tmptmp]
+            pick_list.remove(tmpidx)
             
-            ball , x = idxer.get_x(ts_array, idx)
+            ball , x = idxer.get_x(ts_array, tmpidx)
 
             # one hot
             x_oh = squ.one_hot_no_squish_max_ball(x, ball, max_ball_expected)
