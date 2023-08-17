@@ -48,7 +48,7 @@ model_name = ""
 # what's our model name initially
 model_name_initial = ""
 # what's our learning rate
-learning_rate = 1e-2
+learning_rate = 1e-3
 # winning numbers
 winning_numbers = []
 # total worse count during training
@@ -212,7 +212,7 @@ def scale_tensor(tensor):
     
     return scaled_tensor
 
-import my_class as net
+import my_class_1 as net
 
 def initialize_model(k1,k2,k3,k4):
     global our_depth
@@ -548,6 +548,11 @@ if __name__ == "__main__":
 
     for epoch in range(old_epochs,epochs):
 
+        if epoch == 5:
+            # now save model
+            save_model(epoch,model,optimizer,loss,learning_rate,model_name)
+            break
+
         # (this code is just stupid)
         if test_mode:
             continue
@@ -568,6 +573,7 @@ if __name__ == "__main__":
         # Note: we play to the ball just under top
         while idx < idxer.idxer_get_top():
 
+            
             ball , x = idxer.get_x(ts_array, idx)
 
             # one hot
